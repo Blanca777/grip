@@ -2,27 +2,52 @@
   height: 100vh;
   display: flex;
   flex-wrap: wrap;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom, rgb(241, 100, 18) 49%, #fff 50%, #1499ff 50%);
 }
-.btn {
-  width: 100vw;
-  height: 40px;
-  border-radius: 20px;
+.state{
+
+}
+.inputbox{
+  margin: 20px 0;
+}
+.watchBtn{
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+
   text-align: center;
-  line-height: 40px;
+  line-height: 30px;
+
   color: #fff;
-  user-select: none;
+  background-color: yellowgreen;
+
+  cursor: pointer;
 }
-.font_S {
+.shareBtn{
   display: inline-block;
-  font-size: 30px;
-}
-.font_E {
-  display: inline-block;
-  font-size: 30px;
-}
-.tool{
+  width: 100px;
+  height: 30px;
+
+  text-align: center;
+  line-height: 30px;
+
   color: #fff;
+  background-color: skyblue;
+
+  cursor: pointer;
+}
+.endBtn{
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+
+  text-align: center;
+  line-height: 30px;
+
+  color: #fff;
+  background-color: red;
+
+  cursor: pointer;
 }
