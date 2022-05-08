@@ -5,8 +5,8 @@ const path = require('path')
 let mainWindow: Electron.CrossProcessExports.BrowserWindow
 function create() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 400,
+    width: 1024,
+    height: 720,
     // resizable: false,
     webPreferences: {
       preload: path.resolve(__dirname, isDev ? 'home.pre.ts' : 'home.pre.js'),

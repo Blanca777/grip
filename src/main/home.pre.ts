@@ -28,32 +28,39 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toShare: function (localChannel) {
     ipcRenderer.send('toShare', localChannel)
   },
-
+  closeShare: function (localChannel){
+    ipcRenderer.send('closeShare', localChannel)
+  },
+  // 观看端：监听是否成功进入频道
   addWatchListener: (toWatchSuccessHandle, toWatchFailHandle) => {
-    ipcRenderer.on('toWatchSuccess', toWatchSuccessHandle)
-    ipcRenderer.on('toWatchFail', toWatchFailHandle)
+    ipcRenderer.once('toWatchSuccess', toWatchSuccessHandle)
+    ipcRenderer.once('toWatchFail', toWatchFailHandle)
   },
-  removeWatchListener: (toWatchSuccessHandle, toWatchFailHandle) => {
-    ipcRenderer.removeListener('toWatchSuccess', toWatchSuccessHandle)
-    ipcRenderer.removeListener('toWatchFail', toWatchFailHandle)
-  },
-
+  //共享端：开启共享
   addShareListener: (toShareSuccessHandle, toShareFailHandle) => {
-    ipcRenderer.on('toShareSuccess', toShareSuccessHandle)
-    ipcRenderer.on('toShareFail', toShareFailHandle)
+    ipcRenderer.once('toShareSuccess', toShareSuccessHandle)
+    ipcRenderer.once('toShareFail', toShareFailHandle)
   },
-  removeShareListener: (toShareSuccessHandle, toShareFailHandle) => {
-    ipcRenderer.removeListener('toShareSuccess', toShareSuccessHandle)
-    ipcRenderer.removeListener('toShareFail', toShareFailHandle)
+  //共享端：关闭共享
+  addCloseShareListener: (closeShareSuccessHandle, closeShareFailHandle) => {
+    ipcRenderer.once('closeShareSuccess', closeShareSuccessHandle)
+    ipcRenderer.once('closeShareFail', closeShareFailHandle)
   },
-
+  //共享端：监听谁进入频道
   addWhoIntoChannelListener: callback => {
     ipcRenderer.send('addWhoIntoChannelListener')
     ipcRenderer.on('whoIntoChannel', callback)
   },
-  removeWhoIntoChannelListener: callback => {
-    ipcRenderer.removeListener('addWhoIntoChannelListener', callback)
+  removeWhoIntoChannelListener: () => {
+    ipcRenderer.removeAllListeners('whoIntoChannel')
   },
+  //观看端 监听当前频道是否关闭
+  addCurChannelCloseListener: callback => {
+    ipcRenderer.send('addCurChannelCloselListener')
+    ipcRenderer.once('curChannelCloseShare', callback)
+  },
+
+
   getScreenSources: async function () {
     let sources = await ipcRenderer.invoke('getVideoSources')
     return sources
