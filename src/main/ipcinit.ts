@@ -18,7 +18,7 @@ const ipcinit = function () {
       signal.once('calleeSendAnswer', async ({answer}) => {
         sendMainWindow('calleeSendAnswer', answer)
       })
-      signal.once('calleeSendCandidate', async ({candidate}) => {
+      signal.on('calleeSendCandidate', async ({candidate}) => {
         sendMainWindow('calleeSendCandidate', candidate)
       })
     }
@@ -33,7 +33,7 @@ const ipcinit = function () {
     let result = await signal.invoke('calleeAcceptCall', {remoteChannel}, 'calleeAcceptCallResult')
     sendMainWindow('calleeAcceptCallResult', result)
     if (result.code === 1) {
-      signal.once('callerSendOffer', ({offer}) => {
+      signal.once('callerSendOffer', offer => {
         sendMainWindow('callerSendOffer', offer)
       })
       signal.on('callerSendCandidate', ({candidate}) => {
@@ -41,17 +41,8 @@ const ipcinit = function () {
       })
     }
   })
-  ipcMain.on('callerSendOffer', (e, offer) => {
-    signal.send('forwrad', {event: 'callerSendOffer', data: {offer}})
-  })
-  ipcMain.on('calleeSendAnswer', (e, answer) => {
-    signal.send('forwrad', {event: 'calleeSendAnswer', data: {answer}})
-  })
-  ipcMain.on('callerSendCandidate', (e, candidate) => {
-    signal.send('forwrad', {event: 'callerSendCandidate', data: {candidate}})
-  })
-  ipcMain.on('calleeSendCandidate', (e, candidate) => {
-    signal.send('forwrad', {event: 'calleeSendCandidate', data: {candidate}})
+  ipcMain.on('forward', (e, event, data) => {
+    signal.send('forward', {event, data})
   })
 }
 module.exports = ipcinit

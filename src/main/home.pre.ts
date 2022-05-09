@@ -10,16 +10,15 @@ async function addIceCandidate(candidate) {
   }
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log(pc.remoteDescription.type)
-    console.log('当前已经添加远程端信息，将candidate加入pc');
-    console.log('remoteDescription:'+pc.remoteDescription)
-    console.log('remoteDescriptionType:'+pc.remoteDescription.type)
+    console.log('当前已经添加远程端信息，将candidate加入pc')
+    console.log('remoteDescription:' + pc.remoteDescription)
+    console.log('remoteDescriptionType:' + pc.remoteDescription.type)
     for (let i = 0; i < candidates.length; i++) {
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
-  }else{
-    console.log('当前还未添加远程端信息，将candidate放入数组');
-    
+  } else {
+    console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
 const getMediaScreen = async () => {
@@ -32,22 +31,26 @@ getMediaScreen()
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
-    ipcRenderer.send('callerSendCandidate', JSON.stringify(e.candidate))
+    ipcRenderer.send('forward', 'callerSendCandidate', e.candidate)
   }
   // const mst = new MediaStreamTrack()
   for (let mst of gumStream.getTracks()) {
     pc.addTrack(mst, gumStream)
   }
 
-  let offer = await pc.createOffer()
-  pc.setLocalDescription(offer)
-  ipcRenderer.send('callerSendOffer', JSON.stringify(offer))
+  let offer = await pc.createOffer({
+    offerToReceiveAudio: false,
+    offerToReceiveVideo: true,
+  })
+  await pc.setLocalDescription(offer)
+  ipcRenderer.send('forward','callerSendOffer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
   console.log('被呼叫人：设置offer并发送answer')
-  console.log('收到的offer:' + offer)
+  console.log('收到的offer:' + typeof offer + ':' + offer)
   pc.onicecandidate = e => {
-    ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
+    ipcRenderer.send('forward', 'calleeSendCandidate', e.candidate)
+  }
   }
   pc.setRemoteDescription(offer)
 
@@ -56,23 +59,17 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   }
 
   const answer = await pc.createAnswer()
-  pc.setLocalDescription(answer)
-  ipcRenderer.send('calleeSendAnswer', JSON.stringify(answer))
+  await pc.setLocalDescription(answer)
+  ipcRenderer.send('forward','calleeSendAnswer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
 }
 const callerSetAnswer = async (e, answer) => {
-  console.log('呼叫人：收到answer并设置,answer:'+answer)
+  console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
   pc.setRemoteDescription(answer)
 }
-const callerAddIceCandidate = (e, candidate) => {
-  console.log('呼叫人：收到candidate并添加上')
-  console.log('收到的candidate:' + candidate)
-  addIceCandidate(candidate)
-}
-const calleeAddIceCandidate = (e, candidate) => {
-  console.log('被呼叫人：收到candidate并添加上')
-  console.log('收到的candidate:' + candidate)
-  addIceCandidate(candidate)
-}
+// const addIceCandidate = (e, candidate) => {
+//   console.log('收到candidate:' + typeof candidate + ':' + candidate)
+//   addIceCandidate(candidate)
+// }
 const addVideoSrcObjec = (remoteStream, localStream) => {
   let remoteVideo = document.getElementById('remoteVideo')
   let localvideo = document.getElementById('localVideo')
@@ -102,7 +99,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
           callerOpenVideo(remoteChannel)
         })
         ipcRenderer.on('calleeSendAnswer', callerSetAnswer)
-        ipcRenderer.on('calleeSendCandidate', callerAddIceCandidate)
+        ipcRenderer.on('calleeSendCandidate', addIceCandidate)
       }
     })
   },
@@ -117,7 +114,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       calleeAcceptCallResultCallback(result)
       if (result.code === 1) {
         ipcRenderer.once('callerSendOffer', calleeSetOfferAndSendAnswer)
-        ipcRenderer.on('callerSendCandidate', calleeAddIceCandidate)
+        ipcRenderer.on('callerSendCandidate', addIceCandidate)
       }
     })
   },
