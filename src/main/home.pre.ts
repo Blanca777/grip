@@ -1,69 +1,96 @@
-const {contextBridge, ipcRenderer} = require('electron')
+const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
-const pc_main = new RTCPeerConnection({})
-async function createOffer() {
-  const offer = await pc_main.createOffer({
-    offerToReceiveAudio: false,
-    offerToReceiveVideo: true,
-  })
-  await pc_main.setLocalDescription(offer)
-  console.log('pc_main.offer:', JSON.stringify(offer))
-  return pc_main.localDescription
+let pc = new RTCPeerConnection()
+let candidates = []
+async function addIceCandidate(candidate) {
+  if (candidate) {
+    candidates.push(JSON.parse(candidate))
+  }
+  if (pc?.remoteDescription && pc?.remoteDescription?.type) {
+    for (let i = 0; i < candidates.length; i++) {
+      await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
+    }
+    candidates = []
+  }
 }
-async function setRemoteAnswer(answer) {
-  await pc_main.setRemoteDescription(answer)
+const getMediaScreen = async () => {
+  const gumStream = await navigator.mediaDevices.getUserMedia({audio: false, video: true})
+  return gumStream
 }
-pc_main.ontrack = function (e) {
-  console.log('ontrack:', JSON.stringify(e.streams[0]))
+const callerSendOffer = async () => {
+  console.log('send offer')
+  pc.onicecandidate = function (e) {
+    ipcRenderer.send('callerSendCandidate', JSON.stringify(e.candidate))
+  }
+  console.log(111)
+  let gumStream = await getMediaScreen()
+
+  console.log(gumStream)
+
+  for (const track of gumStream.getTracks()) {
+    pc.addTrack(track)
+  }
+  let offer = await pc.createOffer()
+  pc.setLocalDescription(offer)
+  ipcRenderer.send('callerSendOffer', JSON.stringify(offer))
 }
-createOffer()
+const calleeSetOfferAndSendAnswer = async (e, offer) => {
+  pc.onicecandidate = e => {
+    ipcRenderer.send('calleeSendCandidate', e.candidate)
+  }
+  pc.setRemoteDescription(JSON.parse(offer))
+  let gumStream = await getMediaScreen()
+  for (const track of gumStream.getTracks()) {
+    pc.addTrack(track)
+  }
+  const answer = await pc.createAnswer()
+  pc.setLocalDescription(answer)
+  ipcRenderer.send('calleeSendAnswer', JSON.stringify(answer))
+}
+const callerSetAnswer = async (e, answer) => {
+  pc.setRemoteDescription(JSON.parse(answer))
+}
+const callerAddIceCandidate = (e, candidate) => {
+  addIceCandidate(candidate)
+}
+const calleeAddIceCandidate = (e, candidate) => {
+  addIceCandidate(candidate)
+}
 contextBridge.exposeInMainWorld('electronAPI', {
   getLocalChannel: async function () {
     let localChannel = await ipcRenderer.invoke('getLocalChannel')
     return localChannel
   },
-  toWatch: function (remoteChannel) {
-    ipcRenderer.send('toWatch', remoteChannel)
+  callerToCall: function (remoteChannel, callerToCallResultCallback) {
+    ipcRenderer.send('callerToCall', remoteChannel)
+    ipcRenderer.once('callerToCallResult', (e, result) => {
+      callerToCallResultCallback(result)
+      if (result.code === 1) {
+        ipcRenderer.once('calleeAcceptCall', callerSendOffer)
+        ipcRenderer.once('calleeSendAnswer', callerSetAnswer)
+        ipcRenderer.on('calleeSendCandidate', callerAddIceCandidate)
+      }
+    })
   },
-  toShare: function (localChannel) {
-    ipcRenderer.send('toShare', localChannel)
+  addWhoCallListener: function (callback) {
+    ipcRenderer.send('addWhoCallListener')
+    ipcRenderer.once('whoCall', callback)
   },
-  closeShare: function (localChannel){
-    ipcRenderer.send('closeShare', localChannel)
+  acceptCall: async function (remoteChannel, calleeAcceptCallResultCallback) {
+    console.log('acceptCall' + remoteChannel)
+    ipcRenderer.send('calleeAcceptCall', remoteChannel)
+    ipcRenderer.once('calleeAcceptCallResult', (e, result) => {
+      calleeAcceptCallResultCallback(result)
+      if (result.code === 1) {
+        ipcRenderer.once('callerSendOffer', calleeSetOfferAndSendAnswer)
+        ipcRenderer.on('callerSendCandidate', calleeAddIceCandidate)
+      }
+    })
   },
-  // 观看端：监听是否成功进入频道
-  addWatchListener: (toWatchSuccessHandle, toWatchFailHandle) => {
-    ipcRenderer.once('toWatchSuccess', toWatchSuccessHandle)
-    ipcRenderer.once('toWatchFail', toWatchFailHandle)
+  addTrackCallback: async function (callback) {
+    let localStream = await getMediaScreen()
+    pc.ontrack = async e => {
+      callback(e.streams, localStream)
+    }
   },
-  //共享端：开启共享
-  addShareListener: (toShareSuccessHandle, toShareFailHandle) => {
-    ipcRenderer.once('toShareSuccess', toShareSuccessHandle)
-    ipcRenderer.once('toShareFail', toShareFailHandle)
-  },
-  //共享端：关闭共享
-  addCloseShareListener: (closeShareSuccessHandle, closeShareFailHandle) => {
-    ipcRenderer.once('closeShareSuccess', closeShareSuccessHandle)
-    ipcRenderer.once('closeShareFail', closeShareFailHandle)
-  },
-  //共享端：监听谁进入频道
-  addWhoIntoChannelListener: callback => {
-    ipcRenderer.send('addWhoIntoChannelListener')
-    ipcRenderer.on('whoIntoChannel', callback)
-  },
-  removeWhoIntoChannelListener: () => {
-    ipcRenderer.removeAllListeners('whoIntoChannel')
-  },
-  //观看端 监听当前频道是否关闭
-  addCurChannelCloseListener: callback => {
-    ipcRenderer.send('addCurChannelCloselListener')
-    ipcRenderer.once('curChannelCloseShare', callback)
-  },
-
-
-  getScreenSources: async function () {
-    let sources = await ipcRenderer.invoke('getVideoSources')
-    return sources
-  },
-  setRemoteAnswer: setRemoteAnswer,
 })

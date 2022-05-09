@@ -1,107 +1,84 @@
 import React, {useContext, useState, useRef, useEffect} from 'react'
 import StoreContext from '../../state/context'
 import css from './index.css'
-const {
-  getLocalChannel,
-  toShare,
-  toWatch,
-  closeShare,
-
-  addWatchListener,
-  addShareListener,
-  addCloseShareListener,
-
-  addWhoIntoChannelListener,
-  removeWhoIntoChannelListener,
-
-  addCurChannelCloseListener,
-} = window.electronAPI
+const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
 const Home: React.FC = () => {
-  // const [state, dispatch] = useContext(StoreContext)
   const [localChannel, setLocalChannel] = useState<string>('000000')
   const [remoteChannel, setRemoteChannel] = useState<string>('000000')
-  const [shared, setShared] = useState<boolean>(false)
-  const [watch, setWatch] = useState<boolean>(false)
+  const [calling, setCalling] = useState<boolean>(false)
+  const [beCalling, setBeCalling] = useState<boolean>(false)
   const init = async function () {
     let channel = await getLocalChannel()
     setLocalChannel(channel)
   }
 
-  const closeShareSuccess = (e, message) => {
-    console.log('关闭共享成功:', message)
-    setShared(false)
+  const toCallClickHandle = () => {
+    callerToCall(remoteChannel, result => {
+      console.log(result.message)
+    })
   }
-  const closeShareFail = (e, message) => {
-    console.log('关闭共享失败:', message)
+  const whoCallHandle = (e, channel) => {
+    console.log(channel + ' call you')
+    setBeCalling(true)
+    setRemoteChannel(channel + '')
   }
-  const closeSharehandle = () => {
-    closeShare(localChannel)
-    removeWhoIntoChannelListener(whoIntoChannelHandle)
+  const setVideStream = (remotestream, localStream) => {
+    const remoteVideoEle = document.getElementById('remoteVideo') as HTMLVideoElement
+    const localVideoEle = document.getElementById('localVideo') as HTMLVideoElement
+    remoteVideoEle.srcObject = remotestream[0]
+    localVideoEle.srcObject = localStream
+    remoteVideoEle.onloadeddata = () => {
+      remoteVideoEle.play()
+    }
+    localVideoEle.onloadeddata = () => {
+      localVideoEle.play()
+    }
   }
-
-  const toWatchhandle = () => {
-    toWatch(remoteChannel)
-    addWatchListener(toWatchSuccess, toWatchFail)
+  const acceptHandle = () => {
+    setCalling(true)
+    setBeCalling(false)
+    addTrackCallback(setVideStream)
+    acceptCall(remoteChannel, result => {
+      //已经建立连接，等待caller发offer
+      console.log(result.message)
+    })
   }
-  const toShareSuccess = (e, message) => {
-    console.log('共享成功:', message)
-    addWhoIntoChannelListener(whoIntoChannelHandle)
-    addCloseShareListener(closeShareSuccess, closeShareFail)
-    setShared(true)
-  }
-  const toShareFail = (e, message) => {
-    console.log('共享失败原因:', message)
-  }
-  const toSharehandle = () => {
-    toShare(localChannel)
-    addShareListener(toShareSuccess, toShareFail)
-  }
-  const curChannelCloseShareHandle = (e, channel) => {
-    console.log('当前频道结束共享了')
-    setWatch(false)
-  }
-  const toWatchSuccess = (e, remoteChannel) => {
-    console.log('进入频道:', remoteChannel)
-    setWatch(true)
-    setRemoteChannel(remoteChannel + '')
-    addCurChannelCloseListener(curChannelCloseShareHandle)
-  }
-  const toWatchFail = (e, message) => {
-    console.log('失败原因:', message)
-  }
-  const whoIntoChannelHandle = (e, remoteChannel) => {
-    console.log(remoteChannel + '进入频道')
+  const rejectHandle = () => {
+    setBeCalling(false)
   }
   useEffect(() => {
     init()
-
+    addWhoCallListener(whoCallHandle)
     return () => {}
   }, [])
 
   return (
     <div className={css.box}>
-      {shared ? (
+      {calling ? (
         <>
-          <div className={css.endBtn} onClick={closeSharehandle}>
-            结束共享
-          </div>
-        </>
-      ) : watch ? (
-        <>
-          <div>正在观看频道:{remoteChannel}</div>
+          <div>通话中。。:{remoteChannel}</div>
+          <video id="remoteVideo"></video>
+          <video id="localVideo"></video>
         </>
       ) : (
         <>
           <div className={css.state}>{`频道:${localChannel}`}</div>
           <input type="text" className={css.inputbox} onChange={e => setRemoteChannel(e.target.value)} />
           <div>
-            <div className={css.watchBtn} onClick={toWatchhandle}>
-              观看
-            </div>
-            <div className={css.shareBtn} onClick={toSharehandle}>
-              共享
+            <div className={css.callBtn} onClick={toCallClickHandle}>
+              呼叫
             </div>
           </div>
+          {beCalling && (
+            <div className={css.chooseBox}>
+              <div className={css.rejectBtn} onClick={rejectHandle}>
+                拒绝
+              </div>
+              <div className={css.acceptBtn} onClick={acceptHandle}>
+                接受
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

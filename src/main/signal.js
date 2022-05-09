@@ -18,13 +18,13 @@ function send(event, data) {
   console.log(event, data)
   ws.send(JSON.stringify({event, data}))
 }
-function invoke(event, data, resultEvent) {
+function invoke(event, data, resultEvent, wait = 5000) {
   return new Promise((resolve, reject) => {
     send(event, data)
     signal.once(resultEvent, resolve)
     setTimeout(() => {
       reject('timeout')
-    }, 5000)
+    }, wait)
   })
 }
 

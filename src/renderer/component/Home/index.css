@@ -6,14 +6,12 @@
   justify-content: center;
   align-items: center;
   background-color: #333;
+  color: #fff;
 }
-.state{
-
-}
-.inputbox{
+.inputbox {
   margin: 20px 0;
 }
-.watchBtn{
+.callBtn {
   display: inline-block;
   width: 100px;
   height: 30px;
@@ -21,34 +19,38 @@
   text-align: center;
   line-height: 30px;
 
-  color: #fff;
   background-color: yellowgreen;
 
   cursor: pointer;
 }
-.shareBtn{
-  display: inline-block;
-  width: 100px;
-  height: 30px;
-
+.chooseBox {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 200px;
+  height: 100px;
+  background-color: #000;
+  border-radius: 10px;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
-  line-height: 30px;
-
-  color: #fff;
-  background-color: skyblue;
-
-  cursor: pointer;
 }
-.endBtn{
+.acceptBtn {
   display: inline-block;
-  width: 100px;
-  height: 30px;
+  width: 70px;
+  height: 35px;
+  color: green;
+  line-height: 35px;
 
-  text-align: center;
-  line-height: 30px;
-
-  color: #fff;
-  background-color: red;
-
-  cursor: pointer;
+  background-color: #fff;
+}
+.rejectBtn {
+  display: inline-block;
+  width: 70px;
+  height: 35px;
+  color: red;
+  line-height: 35px;
+  background-color: #fff;
 }
