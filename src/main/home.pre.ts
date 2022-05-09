@@ -26,14 +26,9 @@ const callerSendOffer = async () => {
   pc.onicecandidate = function (e) {
     ipcRenderer.send('callerSendCandidate', JSON.stringify(e.candidate))
   }
-  console.log(111)
-  // let gumStream = await getMediaScreen()
+  const mst = new MediaStreamTrack()
+  pc.addTrack(mst, gumStream)
 
-  console.log(gumStream)
-
-  for (const track of gumStream.getTracks()) {
-    pc.addTrack(track)
-  }
   let offer = await pc.createOffer()
   pc.setLocalDescription(offer)
   ipcRenderer.send('callerSendOffer', JSON.stringify(offer))
@@ -44,10 +39,10 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
     ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
   pc.setRemoteDescription(JSON.parse(offer))
-  // let gumStream = await getMediaScreen()
-  for (const track of gumStream.getTracks()) {
-    pc.addTrack(track)
-  }
+
+  const mst = new MediaStreamTrack()
+  pc.addTrack(mst, gumStream)
+
   const answer = await pc.createAnswer()
   pc.setLocalDescription(answer)
   ipcRenderer.send('calleeSendAnswer', JSON.stringify(answer))
@@ -102,12 +97,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     pc.ontrack = async ev => {
       console.log('ontrack：有媒体流进入')
       if (ev.streams && ev.streams[0]) {
+        console.log('ontrack：streams[0]存在,直接使用')
         callback(ev.streams[0], gumStream)
-        console.log('ontrack：streams[0]存在')
       } else {
-        let inboundStream = new MediaStream(ev.track)
+        console.log('ontrack：streams[0]不存在，使用track自建媒体流')
+        let inboundStream = new MediaStream()
+        inboundStream.addTrack(ev.track)
         callback(inboundStream, gumStream)
-        console.log('ontrack：streams[0]不存在，使用track自建流')
       }
     }
   },
