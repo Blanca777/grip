@@ -32,7 +32,7 @@ const Home: React.FC = () => {
   const setVideStream = (remotestream, localStream) => {
     const remoteVideoEle = document.getElementById('remoteVideo') as HTMLVideoElement
     const localVideoEle = document.getElementById('localVideo') as HTMLVideoElement
-    remoteVideoEle.srcObject = remotestream[0]
+    remoteVideoEle.srcObject = remotestream
     localVideoEle.srcObject = localStream
     remoteVideoEle.onloadeddata = () => {
       remoteVideoEle.play()

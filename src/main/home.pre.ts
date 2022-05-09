@@ -74,7 +74,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.once('callerToCallResult', (e, result) => {
       callerToCallResultCallback(result)
       if (result.code === 1) {
-        ipcRenderer.on('calleeAcceptCall', (e, remoteChannel)=>{
+        ipcRenderer.on('calleeAcceptCall', (e, remoteChannel) => {
           callerSendOffer()
           callerOpenVideo(remoteChannel)
         })
@@ -100,13 +100,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   addTrackCallback: async function (callback) {
     pc.ontrack = async ev => {
+      console.log('ontrack：有媒体流进入')
       if (ev.streams && ev.streams[0]) {
         callback(ev.streams[0], gumStream)
+        console.log('ontrack：streams[0]存在')
       } else {
-        // let inboundStream = new MediaStream(ev.track)
-        // callback(inboundStream, gumStream)
+        let inboundStream = new MediaStream(ev.track)
+        callback(inboundStream, gumStream)
+        console.log('ontrack：streams[0]不存在，使用track自建流')
       }
-      console.log('ontrack：有媒体流进入')
     }
   },
 })
