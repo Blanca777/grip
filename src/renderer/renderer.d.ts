@@ -5,6 +5,7 @@ export interface IElectronAPI {
   acceptCall: (remoteChannel: any, calleeAcceptCallResultCallback: any) => Promise<void>
   callerSendOffer: (offer: any) => Promise<void>
   calleeSendAnswer: (answer: any) => Promise<void>
+  addTrackCallback: (callback: any) => Promise<void>
 }
 
 declare global {

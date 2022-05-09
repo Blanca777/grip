@@ -3,8 +3,9 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 let pc = new RTCPeerConnection()
 let candidates = []
 async function addIceCandidate(candidate) {
+  candidate = JSON.parse(candidate)
   if (candidate) {
-    candidates.push(JSON.parse(candidate))
+    candidates.push(candidate)
   }
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     for (let i = 0; i < candidates.length; i++) {
@@ -36,7 +37,7 @@ const callerSendOffer = async () => {
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
   pc.onicecandidate = e => {
-    ipcRenderer.send('calleeSendCandidate', e.candidate)
+    ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
   pc.setRemoteDescription(JSON.parse(offer))
   let gumStream = await getMediaScreen()
@@ -90,6 +91,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addTrackCallback: async function (callback) {
     let localStream = await getMediaScreen()
     pc.ontrack = async e => {
+      console.log('ontrack：有媒体流进入')
       callback(e.streams, localStream)
     }
   },
