@@ -2,7 +2,7 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
 let candidates = []
-let gumStream: MediaStream
+let gumStream
 async function addIceCandidate(candidate) {
   candidate = JSON.parse(candidate)
   if (candidate) {
@@ -101,11 +101,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       console.log('ontrack：有媒体流进入')
       if (ev.streams && ev.streams[0]) {
         console.log('ontrack：streams[0]存在,直接使用')
+
         callback(ev.streams[0], gumStream)
       } else {
         console.log('ontrack：streams[0]不存在，使用track自建媒体流')
         let inboundStream = new MediaStream()
         inboundStream.addTrack(ev.track)
+
         callback(inboundStream, gumStream)
       }
     }

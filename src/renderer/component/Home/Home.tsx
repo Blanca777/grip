@@ -7,6 +7,8 @@ const Home: React.FC = () => {
   const [remoteChannel, setRemoteChannel] = useState<string>('000000')
   const [calling, setCalling] = useState<boolean>(false)
   const [beCalling, setBeCalling] = useState<boolean>(false)
+  const remoteVideoEle = useRef(null)
+  const localVideoEle = useRef(null)
   const init = async function () {
     let channel = await getLocalChannel()
     setLocalChannel(channel)
@@ -30,15 +32,16 @@ const Home: React.FC = () => {
     setRemoteChannel(channel + '')
   }
   const setVideStream = (remotestream, localStream) => {
-    const remoteVideoEle = document.getElementById('remoteVideo') as HTMLVideoElement
-    const localVideoEle = document.getElementById('localVideo') as HTMLVideoElement
-    remoteVideoEle.srcObject = remotestream
-    localVideoEle.srcObject = localStream
-    remoteVideoEle.onloadeddata = () => {
-      remoteVideoEle.play()
-    }
-    localVideoEle.onloadeddata = () => {
-      localVideoEle.play()
+    console.log('远程视频流：' + remotestream, '本地视频流：' + localStream)
+    if (remoteVideoEle.current && localVideoEle.current) {
+      remoteVideoEle.current.srcObject = remotestream
+      localVideoEle.current.srcObject = localStream
+      remoteVideoEle.current.onloadeddata = () => {
+        remoteVideoEle.current.play()
+      }
+      localVideoEle.current.onloadeddata = () => {
+        localVideoEle.current.play()
+      }
     }
   }
   const acceptHandle = () => {
@@ -65,8 +68,8 @@ const Home: React.FC = () => {
       {calling ? (
         <>
           <div>通话中。。:{remoteChannel}</div>
-          <video id="remoteVideo"></video>
-          <video id="localVideo"></video>
+          <video id="remoteVideo" ref={remoteVideoEle}></video>
+          <video id="localVideo" ref={localVideoEle}></video>
         </>
       ) : (
         <>
