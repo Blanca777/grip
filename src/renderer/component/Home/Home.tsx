@@ -1,7 +1,7 @@
 import React, {useContext, useState, useRef, useEffect} from 'react'
 import StoreContext from '../../state/context'
 import css from './index.css'
-const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback, test} = window.electronAPI
+const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<string>('000000')
   const [remoteChannel, setRemoteChannel] = useState<string>('000000')
@@ -12,7 +12,6 @@ const Home: React.FC = () => {
   const init = async function () {
     let channel = await getLocalChannel()
     setLocalChannel(channel)
-    test()
   }
 
   const toCallClickHandle = () => {
