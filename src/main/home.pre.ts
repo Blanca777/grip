@@ -43,7 +43,7 @@ const callerSendOffer = async () => {
     offerToReceiveVideo: true,
   })
   await pc.setLocalDescription(offer)
-  ipcRenderer.send('forward','callerSendOffer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
+  ipcRenderer.send('forward', 'callerSendOffer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
   console.log('被呼叫人：设置offer并发送answer')
@@ -51,16 +51,16 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   pc.onicecandidate = e => {
     ipcRenderer.send('forward', 'calleeSendCandidate', e.candidate)
   }
-  }
+
   pc.setRemoteDescription(offer)
 
   for (let mst of gumStream.getTracks()) {
     pc.addTrack(mst, gumStream)
   }
-
-  const answer = await pc.createAnswer()
+  let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
-  ipcRenderer.send('forward','calleeSendAnswer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
+
+  ipcRenderer.send('forward', 'calleeSendAnswer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
 }
 const callerSetAnswer = async (e, answer) => {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)

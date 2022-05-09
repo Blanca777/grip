@@ -1,7 +1,6 @@
 export {}
 const {ipcMain, desktopCapturer} = require('electron')
 const {send: sendMainWindow} = require('./home')
-const {create: createControlWindow, send: sendControlWindow} = require('./watch')
 const signal = require('./signal')
 
 const ipcinit = function () {
