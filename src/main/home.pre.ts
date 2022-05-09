@@ -2,6 +2,7 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
 let candidates = []
+let gumStream
 async function addIceCandidate(candidate) {
   candidate = JSON.parse(candidate)
   if (candidate) {
@@ -15,9 +16,9 @@ async function addIceCandidate(candidate) {
   }
 }
 const getMediaScreen = async () => {
-  const gumStream = await navigator.mediaDevices.getUserMedia({audio: false, video: true})
-  return gumStream
+  gumStream = await navigator.mediaDevices.getUserMedia({audio: false, video: true})
 }
+getMediaScreen()
 const callerSendOffer = async () => {
   console.log('send offer')
   pc.onicecandidate = function (e) {
@@ -40,7 +41,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
     ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
   pc.setRemoteDescription(JSON.parse(offer))
-  let gumStream = await getMediaScreen()
+  // let gumStream = await getMediaScreen()
   for (const track of gumStream.getTracks()) {
     pc.addTrack(track)
   }
@@ -89,10 +90,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     })
   },
   addTrackCallback: async function (callback) {
-    let localStream = await getMediaScreen()
-    pc.ontrack = async e => {
+    pc.ontrack = async ev => {
+      if (ev.streams && ev.streams[0]) {
+        callback(ev.streams[0], gumStream)
+      } else {
+        let inboundStream = new MediaStream(ev.track)
+        callback(inboundStream, gumStream)
+      }
       console.log('ontrack：有媒体流进入')
-      callback(e.streams, localStream)
     }
   },
 })

@@ -37,7 +37,7 @@ const Home: React.FC = () => {
   const acceptHandle = () => {
     setCalling(true)
     setBeCalling(false)
-    addTrackCallback(setVideStream)
+
     acceptCall(remoteChannel, result => {
       //已经建立连接，等待caller发offer
       console.log(result.message)
@@ -49,6 +49,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     init()
     addWhoCallListener(whoCallHandle)
+    addTrackCallback(setVideStream)
     return () => {}
   }, [])
 
