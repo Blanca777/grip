@@ -13,9 +13,16 @@ const Home: React.FC = () => {
   }
 
   const toCallClickHandle = () => {
-    callerToCall(remoteChannel, result => {
-      console.log(result.message)
-    })
+    callerToCall(
+      remoteChannel,
+      result => {
+        console.log(result.message)
+      },
+      remoteChannel => {
+        setCalling(true)
+        setRemoteChannel(remoteChannel + '')
+      },
+    )
   }
   const whoCallHandle = (e, channel) => {
     console.log(channel + ' call you')

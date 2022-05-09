@@ -1,6 +1,6 @@
 export interface IElectronAPI {
   getLocalChannel: () => Promise<string>
-  callerToCall: (remoteChannel: any, callerToCallResultCallback: any) => void
+  callerToCall:  (remoteChannel: any, callerToCallResultCallback: any, callerOpenVideo: any) => void
   addWhoCallListener: (callback: any) => VoidFunction
   acceptCall: (remoteChannel: any, calleeAcceptCallResultCallback: any) => Promise<void>
   callerSendOffer: (offer: any) => Promise<void>

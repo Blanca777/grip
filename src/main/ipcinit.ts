@@ -12,8 +12,8 @@ const ipcinit = function () {
     let result = await signal.invoke('callerToCall', {remoteChannel}, 'callerToCallResult')
     sendMainWindow('callerToCallResult', result)
     if (result.code === 1) {
-      signal.once('calleeAcceptCall', async () => {
-        sendMainWindow('calleeAcceptCall')
+      signal.once('calleeAcceptCall', async ({remoteChannel}) => {
+        sendMainWindow('calleeAcceptCall', remoteChannel)
       })
       signal.once('calleeSendAnswer', async ({answer}) => {
         sendMainWindow('calleeSendAnswer', answer)

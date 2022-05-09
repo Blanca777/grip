@@ -16,16 +16,18 @@ async function addIceCandidate(candidate) {
   }
 }
 const getMediaScreen = async () => {
+  console.log('准备获取本地流')
   gumStream = await navigator.mediaDevices.getUserMedia({audio: false, video: true})
+  console.log('成功设置流，等待发送')
 }
 getMediaScreen()
 const callerSendOffer = async () => {
-  console.log('send offer')
+  console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
     ipcRenderer.send('callerSendCandidate', JSON.stringify(e.candidate))
   }
   console.log(111)
-  let gumStream = await getMediaScreen()
+  // let gumStream = await getMediaScreen()
 
   console.log(gumStream)
 
@@ -37,6 +39,7 @@ const callerSendOffer = async () => {
   ipcRenderer.send('callerSendOffer', JSON.stringify(offer))
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
+  console.log('被呼叫人：设置offer并发送answer')
   pc.onicecandidate = e => {
     ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
@@ -50,12 +53,15 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   ipcRenderer.send('calleeSendAnswer', JSON.stringify(answer))
 }
 const callerSetAnswer = async (e, answer) => {
+  console.log('呼叫人：收到answer并设置')
   pc.setRemoteDescription(JSON.parse(answer))
 }
 const callerAddIceCandidate = (e, candidate) => {
+  console.log('呼叫人：收到candidate并添加上')
   addIceCandidate(candidate)
 }
 const calleeAddIceCandidate = (e, candidate) => {
+  console.log('被呼叫人：收到candidate并添加上')
   addIceCandidate(candidate)
 }
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -63,13 +69,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     let localChannel = await ipcRenderer.invoke('getLocalChannel')
     return localChannel
   },
-  callerToCall: function (remoteChannel, callerToCallResultCallback) {
+  callerToCall: function (remoteChannel, callerToCallResultCallback, callerOpenVideo) {
     ipcRenderer.send('callerToCall', remoteChannel)
     ipcRenderer.once('callerToCallResult', (e, result) => {
       callerToCallResultCallback(result)
       if (result.code === 1) {
-        ipcRenderer.once('calleeAcceptCall', callerSendOffer)
-        ipcRenderer.once('calleeSendAnswer', callerSetAnswer)
+        ipcRenderer.on('calleeAcceptCall', (e, remoteChannel)=>{
+          callerSendOffer()
+          callerOpenVideo(remoteChannel)
+        })
+        ipcRenderer.on('calleeSendAnswer', callerSetAnswer)
         ipcRenderer.on('calleeSendCandidate', callerAddIceCandidate)
       }
     })
@@ -94,8 +103,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (ev.streams && ev.streams[0]) {
         callback(ev.streams[0], gumStream)
       } else {
-        let inboundStream = new MediaStream(ev.track)
-        callback(inboundStream, gumStream)
+        // let inboundStream = new MediaStream(ev.track)
+        // callback(inboundStream, gumStream)
       }
       console.log('ontrack：有媒体流进入')
     }
