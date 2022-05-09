@@ -4,7 +4,7 @@ let pc = new RTCPeerConnection()
 let candidates = []
 let gumStream
 async function addIceCandidate(candidate) {
-  candidate = JSON.parse(candidate)
+  // candidate = JSON.parse(candidate)
   if (candidate) {
     candidates.push(candidate)
   }
@@ -49,7 +49,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   pc.onicecandidate = e => {
     ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
-  pc.setRemoteDescription(JSON.parse(offer))
+  pc.setRemoteDescription(offer)
 
   for (let mst of gumStream.getTracks()) {
     pc.addTrack(mst, gumStream)
@@ -60,8 +60,8 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   ipcRenderer.send('calleeSendAnswer', JSON.stringify(answer))
 }
 const callerSetAnswer = async (e, answer) => {
-  console.log('呼叫人：收到answer并设置')
-  pc.setRemoteDescription(JSON.parse(answer))
+  console.log('呼叫人：收到answer并设置,answer:'+answer)
+  pc.setRemoteDescription(answer)
 }
 const callerAddIceCandidate = (e, candidate) => {
   console.log('呼叫人：收到candidate并添加上')
