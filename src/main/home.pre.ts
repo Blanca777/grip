@@ -4,7 +4,7 @@ let pc = new RTCPeerConnection()
 let candidates = []
 let gumStream
 async function addIceCandidate(candidate) {
-  // candidate = JSON.parse(candidate)
+  candidate = JSON.parse(candidate)
   if (candidate) {
     candidates.push(candidate)
   }
@@ -31,7 +31,7 @@ getMediaScreen()
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
-    ipcRenderer.send('forward', 'callerSendCandidate', e.candidate)
+    ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
   }
   // const mst = new MediaStreamTrack()
   for (let mst of gumStream.getTracks()) {
@@ -49,7 +49,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   console.log('被呼叫人：设置offer并发送answer')
   console.log('收到的offer:' + typeof offer + ':' + offer)
   pc.onicecandidate = e => {
-    ipcRenderer.send('forward', 'calleeSendCandidate', e.candidate)
+    ipcRenderer.send('forward', 'calleeSendCandidate', JSON.stringify(e.candidate))
   }
 
   pc.setRemoteDescription(offer)
