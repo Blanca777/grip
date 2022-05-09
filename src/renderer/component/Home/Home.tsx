@@ -1,17 +1,18 @@
 import React, {useContext, useState, useRef, useEffect} from 'react'
 import StoreContext from '../../state/context'
 import css from './index.css'
-const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
+const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback, test} = window.electronAPI
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<string>('000000')
   const [remoteChannel, setRemoteChannel] = useState<string>('000000')
-  const [calling, setCalling] = useState<boolean>(false)
+  const [calling, setCalling] = useState<boolean>(true)
   const [beCalling, setBeCalling] = useState<boolean>(false)
-  const remoteVideoEle = useRef(null)
-  const localVideoEle = useRef(null)
+  const remoteVideoEle = useRef<HTMLVideoElement>(null)
+  const localVideoEle = useRef<HTMLVideoElement>(null)
   const init = async function () {
     let channel = await getLocalChannel()
     setLocalChannel(channel)
+    test()
   }
 
   const toCallClickHandle = () => {
@@ -31,19 +32,7 @@ const Home: React.FC = () => {
     setBeCalling(true)
     setRemoteChannel(channel + '')
   }
-  const setVideStream = (remotestream, localStream) => {
-    console.log('远程视频流：' + remotestream, '本地视频流：' + localStream)
-    if (remoteVideoEle.current && localVideoEle.current) {
-      remoteVideoEle.current.srcObject = remotestream
-      localVideoEle.current.srcObject = localStream
-      remoteVideoEle.current.onloadeddata = () => {
-        remoteVideoEle.current.play()
-      }
-      localVideoEle.current.onloadeddata = () => {
-        localVideoEle.current.play()
-      }
-    }
-  }
+
   const acceptHandle = () => {
     setCalling(true)
     setBeCalling(false)
@@ -59,7 +48,8 @@ const Home: React.FC = () => {
   useEffect(() => {
     init()
     addWhoCallListener(whoCallHandle)
-    addTrackCallback(setVideStream)
+    addTrackCallback()
+
     return () => {}
   }, [])
 
@@ -67,9 +57,8 @@ const Home: React.FC = () => {
     <div className={css.box}>
       {calling ? (
         <>
-          <div>通话中。。:{remoteChannel}</div>
-          <video id="remoteVideo" ref={remoteVideoEle}></video>
-          <video id="localVideo" ref={localVideoEle}></video>
+          <video id="remoteVideo" className="remoteVideo" ref={remoteVideoEle}></video>
+          <video id="localVideo" className={css.localVideo} ref={localVideoEle}></video>
         </>
       ) : (
         <>

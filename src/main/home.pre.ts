@@ -19,8 +19,9 @@ const getMediaScreen = async () => {
   console.log('准备获取本地流')
   gumStream = await navigator.mediaDevices.getUserMedia({audio: false, video: true})
   console.log('成功设置流，等待发送')
+  return gumStream
 }
-getMediaScreen()
+// getMediaScreen()
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
@@ -62,6 +63,20 @@ const calleeAddIceCandidate = (e, candidate) => {
   console.log('被呼叫人：收到candidate并添加上')
   addIceCandidate(candidate)
 }
+const addVideoSrcObjec = (remoteStream, localStream) => {
+  let remoteVideo = document.getElementById('remoteVideo')
+  let localvideo = document.getElementById('localVideo')
+  remoteVideo.srcObject = remoteStream
+  localvideo.srcObject = localStream
+  remoteVideo.onloadedmetadata = function () {
+    console.log('播放remoteVideo')
+    remoteVideo.play()
+  }
+  localvideo.onloadedmetadata = function () {
+    console.log('播放localvideo')
+    localvideo.play()
+  }
+}
 contextBridge.exposeInMainWorld('electronAPI', {
   getLocalChannel: async function () {
     let localChannel = await ipcRenderer.invoke('getLocalChannel')
@@ -96,19 +111,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
     })
   },
-  addTrackCallback: async function (callback) {
+  addTrackCallback: async function () {
     pc.ontrack = async ev => {
       console.log('ontrack：有媒体流进入')
       if (ev.streams && ev.streams[0]) {
         console.log('ontrack：streams[0]存在,直接使用')
-
-        callback(ev.streams[0], gumStream)
+        addVideoSrcObjec(ev.streams[0], gumStream)
       } else {
         console.log('ontrack：streams[0]不存在，使用track自建媒体流')
         let inboundStream = new MediaStream()
         inboundStream.addTrack(ev.track)
-
-        callback(inboundStream, gumStream)
+        addVideoSrcObjec(inboundStream, gumStream)
       }
     }
   },
