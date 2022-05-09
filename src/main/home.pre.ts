@@ -9,10 +9,17 @@ async function addIceCandidate(candidate) {
     candidates.push(candidate)
   }
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
+    console.log(pc.remoteDescription.type)
+    console.log('当前已经添加远程端信息，将candidate加入pc');
+    console.log('remoteDescription:'+pc.remoteDescription)
+    console.log('remoteDescriptionType:'+pc.remoteDescription.type)
     for (let i = 0; i < candidates.length; i++) {
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
+  }else{
+    console.log('当前还未添加远程端信息，将candidate放入数组');
+    
   }
 }
 const getMediaScreen = async () => {
@@ -21,7 +28,7 @@ const getMediaScreen = async () => {
   console.log('成功设置流，等待发送')
   return gumStream
 }
-// getMediaScreen()
+getMediaScreen()
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
@@ -38,6 +45,7 @@ const callerSendOffer = async () => {
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
   console.log('被呼叫人：设置offer并发送answer')
+  console.log('收到的offer:' + offer)
   pc.onicecandidate = e => {
     ipcRenderer.send('calleeSendCandidate', JSON.stringify(e.candidate))
   }
@@ -57,10 +65,12 @@ const callerSetAnswer = async (e, answer) => {
 }
 const callerAddIceCandidate = (e, candidate) => {
   console.log('呼叫人：收到candidate并添加上')
+  console.log('收到的candidate:' + candidate)
   addIceCandidate(candidate)
 }
 const calleeAddIceCandidate = (e, candidate) => {
   console.log('被呼叫人：收到candidate并添加上')
+  console.log('收到的candidate:' + candidate)
   addIceCandidate(candidate)
 }
 const addVideoSrcObjec = (remoteStream, localStream) => {
@@ -114,7 +124,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addTrackCallback: async function () {
     pc.ontrack = async ev => {
       console.log('ontrack：有媒体流进入')
+
       if (ev.streams && ev.streams[0]) {
+        console.log(ev.streams[0], gumStream)
         console.log('ontrack：streams[0]存在,直接使用')
         addVideoSrcObjec(ev.streams[0], gumStream)
       } else {

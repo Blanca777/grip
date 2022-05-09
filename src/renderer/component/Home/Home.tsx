@@ -5,7 +5,7 @@ const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCa
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<string>('000000')
   const [remoteChannel, setRemoteChannel] = useState<string>('000000')
-  const [calling, setCalling] = useState<boolean>(true)
+  const [calling, setCalling] = useState<boolean>(false)
   const [beCalling, setBeCalling] = useState<boolean>(false)
   const remoteVideoEle = useRef<HTMLVideoElement>(null)
   const localVideoEle = useRef<HTMLVideoElement>(null)
