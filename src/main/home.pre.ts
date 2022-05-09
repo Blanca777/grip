@@ -2,7 +2,7 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
 let candidates = []
-let gumStream
+let gumStream: MediaStream
 async function addIceCandidate(candidate) {
   candidate = JSON.parse(candidate)
   if (candidate) {
@@ -26,8 +26,10 @@ const callerSendOffer = async () => {
   pc.onicecandidate = function (e) {
     ipcRenderer.send('callerSendCandidate', JSON.stringify(e.candidate))
   }
-  const mst = new MediaStreamTrack()
-  pc.addTrack(mst, gumStream)
+  // const mst = new MediaStreamTrack()
+  for (let mst of gumStream.getTracks()) {
+    pc.addTrack(mst, gumStream)
+  }
 
   let offer = await pc.createOffer()
   pc.setLocalDescription(offer)
@@ -40,8 +42,9 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   }
   pc.setRemoteDescription(JSON.parse(offer))
 
-  const mst = new MediaStreamTrack()
-  pc.addTrack(mst, gumStream)
+  for (let mst of gumStream.getTracks()) {
+    pc.addTrack(mst, gumStream)
+  }
 
   const answer = await pc.createAnswer()
   pc.setLocalDescription(answer)
