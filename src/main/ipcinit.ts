@@ -14,7 +14,7 @@ const ipcinit = function () {
       signal.once('calleeAcceptCall', async ({remoteChannel}) => {
         sendMainWindow('calleeAcceptCall', remoteChannel)
       })
-      signal.once('calleeSendAnswer', async ({answer}) => {
+      signal.once('calleeSendAnswer', async (answer) => {
         sendMainWindow('calleeSendAnswer', answer)
       })
       signal.on('calleeSendCandidate', async ({candidate}) => {
