@@ -5,14 +5,16 @@ let candidates = []
 let gumStream
 async function addIceCandidate(candidate) {
   // candidate = JSON.parse(candidate)
+  console.log(candidate)
   if (candidate) {
     candidates.push(candidate)
   }
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
-    console.log('remoteDescription:' + pc.remoteDescription)
-    console.log('remoteDescriptionType:' + pc.remoteDescription.type)
+    // console.log('remoteDescription:' + pc.remoteDescription)
+    // console.log('remoteDescriptionType:' + pc.remoteDescription.type)
     for (let i = 0; i < candidates.length; i++) {
+      console.log(candidate[i])
       if(candidates[i] && candidate[i] !== 'null' && candidate[i] !== 'undefined'){
         await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
       }

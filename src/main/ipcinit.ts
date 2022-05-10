@@ -17,7 +17,7 @@ const ipcinit = function () {
       signal.once('calleeSendAnswer', async (answer) => {
         sendMainWindow('calleeSendAnswer', answer)
       })
-      signal.on('calleeSendCandidate', async ({candidate}) => {
+      signal.on('calleeSendCandidate', async (candidate) => {
         sendMainWindow('calleeSendCandidate', candidate)
       })
     }
@@ -35,7 +35,7 @@ const ipcinit = function () {
       signal.once('callerSendOffer', offer => {
         sendMainWindow('callerSendOffer', offer)
       })
-      signal.on('callerSendCandidate', ({candidate}) => {
+      signal.on('callerSendCandidate', (candidate) => {
         sendMainWindow('callerSendCandidate', candidate)
       })
     }
