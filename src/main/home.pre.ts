@@ -43,7 +43,7 @@ const callerSendOffer = async () => {
   }
 
   let offer = await pc.createOffer({
-    offerToReceiveAudio: false,
+    offerToReceiveAudio: true,
     offerToReceiveVideo: true,
   })
   await pc.setLocalDescription(offer)
