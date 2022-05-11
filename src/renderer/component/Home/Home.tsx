@@ -1,6 +1,6 @@
 import React, {useContext, useState, useRef, useEffect} from 'react'
 import StoreContext from '../../state/context'
-import css from './index.css'
+import css from './index.module.css'
 const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<string>('000000')

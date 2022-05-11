@@ -9,7 +9,7 @@ function create() {
     height: 720,
     // resizable: false,
     webPreferences: {
-      preload: path.resolve(__dirname, isDev ? 'home.pre.ts' : 'home.pre.js'),
+      preload: path.resolve(__dirname, isDev ? '../../dist/main/preload.js' : 'preload.js'),
     },
   })
   mainWindow.menuBarVisible = false

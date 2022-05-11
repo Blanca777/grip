@@ -3,21 +3,15 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 let pc = new RTCPeerConnection()
 let candidates = []
 async function addIceCandidate(e, candidate) {
-  // candidate = JSON.stringify(candidate)
-  console.log(candidate)
-  if (candidate) {
-    candidates.push(candidate)
+  let candi = JSON.parse(candidate)
+  if (candi) {
+    candidates.push(candi)
   }
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
-    // console.log('remoteDescription:' + pc.remoteDescription)
-    // console.log('remoteDescriptionType:' + pc.remoteDescription.type)
     for (let i = 0; i < candidates.length; i++) {
-      // console.log('candidate:', typeof candidates[i], candidates[i])
-      console.log('candidate:', typeof JSON.parse(candidates[i]), JSON.parse(candidates[i]))
-      if (JSON.parse(candidates[i]) && JSON.parse(candidates[i]) !== null) {
-        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidates[i])))
-      }
+      console.log('candidate:', typeof candidates[i], candidates[i])
+      await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
   } else {
@@ -36,7 +30,6 @@ const callerSendOffer = async () => {
   pc.onicecandidate = function (e) {
     ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
   }
-  // const mst = new MediaStreamTrack()
   let streams = await getMediaScreen(false)
   for (let mst of streams.getTracks()) {
     pc.addTrack(mst, streams)
