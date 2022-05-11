@@ -2,7 +2,6 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
 let candidates = []
-let gumStream
 async function addIceCandidate(e, candidate) {
   // candidate = JSON.stringify(candidate)
   console.log(candidate)
@@ -25,21 +24,22 @@ async function addIceCandidate(e, candidate) {
     console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
-const getMediaScreen = async () => {
+const getMediaScreen = async (isLocal) => {
   console.log('准备获取本地流')
-  gumStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+  let gumStream = await navigator.mediaDevices.getUserMedia({audio: !isLocal, video: true})
   console.log('成功设置流，等待发送')
   return gumStream
 }
-getMediaScreen()
+
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
     ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
   }
   // const mst = new MediaStreamTrack()
-  for (let mst of gumStream.getTracks()) {
-    pc.addTrack(mst, gumStream)
+  let streams = await getMediaScreen(false)
+  for (let mst of streams.getTracks()) {
+    pc.addTrack(mst, streams)
   }
 
   let offer = await pc.createOffer({
@@ -57,9 +57,9 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   }
 
   pc.setRemoteDescription(offer)
-
-  for (let mst of gumStream.getTracks()) {
-    pc.addTrack(mst, gumStream)
+  let streams = await getMediaScreen(false)
+  for (let mst of streams.getTracks()) {
+    pc.addTrack(mst, streams)
   }
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
@@ -125,11 +125,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addTrackCallback: async function () {
     pc.ontrack = async ev => {
       console.log('ontrack：有媒体流进入')
-
+      let streams = await getMediaScreen(true)
       if (ev.streams && ev.streams[0]) {
-        console.log(ev.streams[0], gumStream)
+        console.log(ev.streams[0], streams)
         console.log('ontrack：streams[0]存在,直接使用')
-        addVideoSrcObjec(ev.streams[0], gumStream)
+        addVideoSrcObjec(ev.streams[0], streams)
       } else {
         console.log('ontrack：streams[0]不存在，使用track自建媒体流')
         let inboundStream = new MediaStream()
