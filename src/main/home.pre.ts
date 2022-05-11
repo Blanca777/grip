@@ -134,7 +134,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         console.log('ontrack：streams[0]不存在，使用track自建媒体流')
         let inboundStream = new MediaStream()
         inboundStream.addTrack(ev.track)
-        addVideoSrcObjec(inboundStream, gumStream)
+        addVideoSrcObjec(inboundStream, streams)
       }
     }
   },
