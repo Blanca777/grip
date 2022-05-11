@@ -15,7 +15,7 @@ async function addIceCandidate(e, candidate) {
     for (let i = 0; i < candidates.length; i++) {
       // console.log('candidate:', typeof candidates[i], candidates[i])
       console.log('candidate:', typeof JSON.parse(candidates[i]), JSON.parse(candidates[i]))
-      if (candidates[i] && candidate[i] !== 'null' && candidate[i] !== 'undefined' && candidates[i] !== null) {
+      if (JSON.parse(candidates[i]) && JSON.parse(candidates[i]) !== null) {
         await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidates[i])))
       }
     }
@@ -24,7 +24,7 @@ async function addIceCandidate(e, candidate) {
     console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
-const getMediaScreen = async (isLocal) => {
+const getMediaScreen = async isLocal => {
   console.log('准备获取本地流')
   let gumStream = await navigator.mediaDevices.getUserMedia({audio: !isLocal, video: true})
   console.log('成功设置流，等待发送')
