@@ -2,7 +2,7 @@ export {}
 const {BrowserWindow} = require('electron')
 const {isDev} = require('./lib/env')
 const path = require('path')
-let mainWindow: Electron.CrossProcessExports.BrowserWindow
+let mainWindow
 function create() {
   mainWindow = new BrowserWindow({
     width: 1024,

@@ -1,5 +1,4 @@
-import React, {useContext, useState, useRef, useEffect} from 'react'
-import StoreContext from '../../state/context'
+import React, {useState, useRef, useEffect} from 'react'
 import css from './index.module.css'
 const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
 const Home: React.FC = () => {

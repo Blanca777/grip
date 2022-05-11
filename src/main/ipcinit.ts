@@ -1,5 +1,5 @@
 export {}
-const {ipcMain, desktopCapturer} = require('electron')
+const {ipcMain} = require('electron')
 const {send: sendMainWindow} = require('./home')
 const signal = require('./signal')
 
