@@ -3,8 +3,8 @@ const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 let pc = new RTCPeerConnection()
 let candidates = []
 let gumStream
-async function addIceCandidate(candidate) {
-  // candidate = JSON.parse(candidate)
+async function addIceCandidate(e, candidate) {
+  // candidate = JSON.stringify(candidate)
   console.log(candidate)
   if (candidate) {
     candidates.push(candidate)
@@ -14,9 +14,10 @@ async function addIceCandidate(candidate) {
     // console.log('remoteDescription:' + pc.remoteDescription)
     // console.log('remoteDescriptionType:' + pc.remoteDescription.type)
     for (let i = 0; i < candidates.length; i++) {
-      console.log(candidate[i])
-      if(candidates[i] && candidate[i] !== 'null' && candidate[i] !== 'undefined'){
-        await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
+      // console.log('candidate:', typeof candidates[i], candidates[i])
+      console.log('candidate:', typeof JSON.parse(candidates[i]), JSON.parse(candidates[i]))
+      if (candidates[i] && candidate[i] !== 'null' && candidate[i] !== 'undefined') {
+        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidates[i])))
       }
     }
     candidates = []
@@ -62,7 +63,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   }
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
-  console.log('被呼叫人创建的answer:',JSON.stringify(answer))
+  console.log('被呼叫人创建的answer:', JSON.stringify(answer))
   ipcRenderer.send('forward', 'calleeSendAnswer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
 }
 const callerSetAnswer = async (e, answer) => {
