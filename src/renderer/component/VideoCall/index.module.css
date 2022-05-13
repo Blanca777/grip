@@ -1,0 +1,28 @@
+.localVideo{
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  width: 200px;
+  height: 200px;
+}
+.remoteVideo{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+}
+.closeBtn{
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 70px;
+  height: 30px;
+  line-height: 30px;
+  box-shadow: 1px 1px 5px #333;
+  text-align: center;
+  border-radius: 30px;
+  cursor: pointer;
+}

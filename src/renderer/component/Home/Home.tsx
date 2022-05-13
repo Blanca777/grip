@@ -1,79 +1,101 @@
 import React, {useState, useRef, useEffect} from 'react'
 import css from './index.module.css'
-const {getLocalChannel, callerToCall, addWhoCallListener, acceptCall, addTrackCallback} = window.electronAPI
+import VideoCall from '../VideoCall/VideoCall'
+const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionListener, acceptCall, rejectCall} =
+  window.electronAPI
 const Home: React.FC = () => {
-  const [localChannel, setLocalChannel] = useState<string>('000000')
-  const [remoteChannel, setRemoteChannel] = useState<string>('000000')
+  const [localChannel, setLocalChannel] = useState<number>(0)
+  const [remoteChannel, setRemoteChannel] = useState<number>(0)
   const [calling, setCalling] = useState<boolean>(false)
   const [beCalling, setBeCalling] = useState<boolean>(false)
-  const remoteVideoEle = useRef<HTMLVideoElement>(null)
-  const localVideoEle = useRef<HTMLVideoElement>(null)
+  const channelInputRef = useRef<HTMLInputElement>(null)
+
+  const whoCallHandle = channel => {
+    console.log(channel + ' call you')
+    setBeCalling(true)
+    setRemoteChannel(channel)
+  }
+  const closeConnectHandle = () => {
+    setCalling(false)
+  }
   const init = async function () {
-    let channel = await getLocalChannel()
-    setLocalChannel(channel)
+    let result = await getLocalChannel()
+    if (result.code === 0) {
+      setLocalChannel(result.localChannel)
+    } else {
+      console.log(result.message)
+    }
+    addWhoCallListener(whoCallHandle)
+    addCloseConnectionListener(closeConnectHandle)
   }
 
   const toCallClickHandle = () => {
-    callerToCall(
-      remoteChannel,
-      result => {
-        console.log(result.message)
-      },
-      remoteChannel => {
-        setCalling(true)
-        setRemoteChannel(remoteChannel + '')
-      },
-    )
-  }
-  const whoCallHandle = (e, channel) => {
-    console.log(channel + ' call you')
-    setBeCalling(true)
-    setRemoteChannel(channel + '')
+    let remoteChannel = channelInputRef.current?.value === undefined ? 0 : +channelInputRef.current?.value
+    if (remoteChannel === 0) {
+      return console.log('请输入频道！')
+    }
+    const callerToCallResult = result => {
+      console.log(result.message)
+      if (result.code === 0) {
+        console.log('成功')
+      } else {
+        console.log('失败')
+      }
+    }
+    const succCall = remoteChannel => {
+      setCalling(true)
+      setRemoteChannel(remoteChannel)
+    }
+    const failCall = remoteChannel => {
+      setCalling(false)
+      console.log(remoteChannel + '拒绝了')
+    }
+    callerToCall(remoteChannel, callerToCallResult, succCall, failCall)
   }
 
   const acceptHandle = () => {
-    setCalling(true)
     setBeCalling(false)
-
     acceptCall(remoteChannel, result => {
       //已经建立连接，等待caller发offer
       console.log(result.message)
+      if (result.code === 1) {
+        setCalling(true)
+      }
     })
   }
   const rejectHandle = () => {
     setBeCalling(false)
+    rejectCall(remoteChannel)
   }
   useEffect(() => {
     init()
-    addWhoCallListener(whoCallHandle)
-    addTrackCallback()
-
     return () => {}
   }, [])
 
   return (
     <div className={css.box}>
       {calling ? (
-        <>
-          <video id="remoteVideo" className="remoteVideo" ref={remoteVideoEle}></video>
-          <video id="localVideo" className={css.localVideo} ref={localVideoEle}></video>
-        </>
+        <VideoCall remoteChannel={remoteChannel} setCalling={setCalling} />
       ) : (
         <>
-          <div className={css.state}>{`频道:${localChannel}`}</div>
-          <input type="text" className={css.inputbox} onChange={e => setRemoteChannel(e.target.value)} />
-          <div>
-            <div className={css.callBtn} onClick={toCallClickHandle}>
-              呼叫
+          <div className={css.callBox}>
+            <div className={css.channel}>{`${localChannel}`}</div>
+            <input type="text" className={css.inputbox} ref={channelInputRef} autoFocus placeholder="Channel" />
+            <div>
+              <div className={css.callBtn} onClick={toCallClickHandle}>
+                CALL
+              </div>
             </div>
           </div>
+
           {beCalling && (
             <div className={css.chooseBox}>
+              <div className={css.channel}>{remoteChannel}</div>
               <div className={css.rejectBtn} onClick={rejectHandle}>
-                拒绝
+                Reject
               </div>
               <div className={css.acceptBtn} onClick={acceptHandle}>
-                接受
+                Accept
               </div>
             </div>
           )}
