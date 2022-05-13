@@ -121,20 +121,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   addWhoCallListener: function (callback) {
     ipcRenderer.on('whoCall', (e, channel) => {
-      pc.close()
       callback(channel)
     })
   },
   addCloseConnectionListener: function (callback) {
-    ipcRenderer.on('closeConnect', () => {
-      callback()
-    })
+    ipcRenderer.on('closeConnect', callback)
   },
   acceptCall: async function (remoteChannel, calleeAcceptCallResultCallback) {
     ipcRenderer.send('calleeAcceptCall', remoteChannel)
     ipcRenderer.once('calleeAcceptCallResult', (e, result) => {
       calleeAcceptCallResultCallback(result)
-      if (result.code === 1) {
+      if (result.code === 0) {
         ipcRenderer.once('callerSendOffer', calleeSetOfferAndSendAnswer)
         ipcRenderer.on('callerSendCandidate', addIceCandidate)
       }

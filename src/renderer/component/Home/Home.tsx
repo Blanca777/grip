@@ -58,7 +58,7 @@ const Home: React.FC = () => {
     acceptCall(remoteChannel, result => {
       //已经建立连接，等待caller发offer
       console.log(result.message)
-      if (result.code === 1) {
+      if (result.code === 0) {
         setCalling(true)
       }
     })

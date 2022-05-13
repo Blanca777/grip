@@ -16,7 +16,7 @@ const ipcinit = function () {
   ipcMain.on('callerToCall', async (e, remoteChannel) => {
     let result = await signal.invoke('callerToCall', {remoteChannel}, 'callerToCallResult')
     sendMainWindow('callerToCallResult', result)
-    if (result.code === 1) {
+    if (result.code === 0) {
       signal.once('calleeAcceptCall', async ({remoteChannel}) => {
         sendMainWindow('calleeAcceptCall', remoteChannel)
       })
@@ -50,8 +50,8 @@ const ipcinit = function () {
   ipcMain.on('forward', (e, event, data) => {
     signal.send('forward', {event, data})
   })
-  ipcMain.on('closeConnect', (e, localChannel, remoteChannel) => {
-    signal.send('closeConnect', {localChannel, remoteChannel})
+  ipcMain.on('closeConnect', (e, remoteChannel) => {
+    signal.send('closeConnect', {remoteChannel})
   })
 }
 module.exports = ipcinit
