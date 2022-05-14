@@ -23,9 +23,8 @@ async function addIceCandidate(e, candidate) {
   }
 }
 const getMediaScreen = async isLocal => {
-  console.log('准备获取本地流')
   let gumStream = await navigator.mediaDevices.getUserMedia({audio: !isLocal, video: true})
-  console.log('成功设置流，等待发送')
+  console.log('成功获取流，等待发送')
   return gumStream
 }
 const addVideoSrcObjec = (remoteStream, localStream) => {
@@ -51,7 +50,7 @@ const addTrackCallback = async function () {
       console.log('ontrack：streams[0]存在,直接使用')
       addVideoSrcObjec(ev.streams[0], streams)
     } else {
-      console.log('ontrack：streams[0]不存在，使用track自建媒体流')
+      console.log('ontrack：使用track自建媒体流')
       let inboundStream = new MediaStream()
       inboundStream.addTrack(ev.track)
       addVideoSrcObjec(inboundStream, streams)
