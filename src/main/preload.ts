@@ -4,6 +4,7 @@ let pc: RTCPeerConnection = new RTCPeerConnection()
 let remoteSenders: RTCRtpSender[] = []
 let candidates: any[] = []
 let mediaScreen: MediaStream
+let isInitGetMediaScreen: boolean = true
 async function addIceCandidate(e, candidate) {
   try {
     let candi = JSON.parse(candidate)
@@ -24,7 +25,8 @@ async function addIceCandidate(e, candidate) {
   }
 }
 const getMediaScreen = async () => {
-  if (!mediaScreen) {
+  if (!mediaScreen||isInitGetMediaScreen) {
+    isInitGetMediaScreen = false
     mediaScreen = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
   }
   return mediaScreen
@@ -44,9 +46,11 @@ const addVideoSrcObjec = (remoteStream, localStream) => {
   }
 }
 const stopVideo = () => {
+  isInitGetMediaScreen = true
   getMediaScreen().then(stream => {
     stream.getTracks().forEach(track => {
       track.stop()
+      console.log(track.kind, '关闭', '状态：', track.enabled)
     })
   })
 }
@@ -54,7 +58,7 @@ const addTrackCallback = async function () {
   pc.ontrack = async ev => {
     console.log('ontrack：有媒体流进入')
     let stream = await getMediaScreen()
-    let newStream = new MediaStream(stream.getVideoTracks());
+    let newStream = new MediaStream(stream.getVideoTracks())
     if (ev.streams && ev.streams[0]) {
       console.log(ev.streams[0], newStream)
       console.log('ontrack：streams[0]存在,直接使用')
