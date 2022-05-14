@@ -1,6 +1,6 @@
 const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
-let pc = new RTCPeerConnection()
+let pc: RTCPeerConnection = new RTCPeerConnection()
 let remoteSenders: RTCRtpSender[] = []
 let candidates: any[] = []
 async function addIceCandidate(e, candidate) {
@@ -22,9 +22,8 @@ async function addIceCandidate(e, candidate) {
     console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
-const getMediaScreen = async isLocal => {
-  let gumStream = await navigator.mediaDevices.getUserMedia({audio: !isLocal, video: true})
-  console.log('成功获取流，等待发送')
+const getMediaScreen = async (addAudio: boolean, addVideo: boolean) => {
+  let gumStream = await navigator.mediaDevices.getUserMedia({audio: addAudio, video: addVideo})
   return gumStream
 }
 const addVideoSrcObjec = (remoteStream, localStream) => {
@@ -41,10 +40,22 @@ const addVideoSrcObjec = (remoteStream, localStream) => {
     localvideo.play()
   }
 }
+const stopVideo = () => {
+  const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement
+  const localvideo = document.getElementById('localVideo') as HTMLVideoElement
+  const remoteStream = remoteVideo.srcObject as MediaStream
+  const localStream = localvideo.srcObject as MediaStream
+  remoteStream.getTracks().forEach(function(track){
+    track.stop()
+  })
+  localStream.getTracks().forEach(function(track){
+    track.stop()
+  })
+}
 const addTrackCallback = async function () {
   pc.ontrack = async ev => {
     console.log('ontrack：有媒体流进入')
-    let streams = await getMediaScreen(true)
+    let streams = await getMediaScreen(false, true)
     if (ev.streams && ev.streams[0]) {
       console.log(ev.streams[0], streams)
       console.log('ontrack：streams[0]存在,直接使用')
@@ -65,7 +76,7 @@ const callerSendOffer = async () => {
       ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
     }
   }
-  let streams = await getMediaScreen(false)
+  let streams = await getMediaScreen(true, true)
   console.log('获取有声音本地流:', streams)
   for (let mst of streams.getTracks()) {
     console.log('推送轨道：', mst)
@@ -78,7 +89,7 @@ const callerSendOffer = async () => {
     offerToReceiveVideo: true,
   })
   await pc.setLocalDescription(offer)
-  ipcRenderer.send('forward', 'callerSendOffer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
+  ipcRenderer.send('forward', 'callerSendOffer', {type: pc.localDescription?.type, sdp: pc.localDescription?.sdp})
 }
 const calleeSetOfferAndSendAnswer = async (e, offer) => {
   console.log('被呼叫人：设置offer并发送answer')
@@ -88,7 +99,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   }
 
   pc.setRemoteDescription(offer)
-  let streams = await getMediaScreen(false)
+  let streams = await getMediaScreen(true, true)
   for (let mst of streams.getTracks()) {
     let remoteSender = pc.addTrack(mst, streams)
     remoteSenders.push(remoteSender)
@@ -96,7 +107,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
   console.log('被呼叫人创建的answer:', JSON.stringify(answer))
-  ipcRenderer.send('forward', 'calleeSendAnswer', {type: pc.localDescription.type, sdp: pc.localDescription.sdp})
+  ipcRenderer.send('forward', 'calleeSendAnswer', {type: pc.localDescription?.type, sdp: pc.localDescription?.sdp})
 }
 const callerSetAnswer = async (e, answer) => {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
@@ -136,6 +147,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       for (let i = 0; i < remoteSenders.length; i++) {
         pc.removeTrack(remoteSenders[i])
       }
+      stopVideo()
       callback()
     })
   },
@@ -156,6 +168,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     for (let i = 0; i < remoteSenders.length; i++) {
       pc.removeTrack(remoteSenders[i])
     }
+    stopVideo()
     ipcRenderer.send('closeConnect', remoteChannel)
   },
 })
