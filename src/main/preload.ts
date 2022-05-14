@@ -1,7 +1,7 @@
 const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
-let remoteSenders: RTCRtpSender[]
+let remoteSenders: RTCRtpSender[] = []
 let candidates: any[] = []
 async function addIceCandidate(e, candidate) {
   try {
