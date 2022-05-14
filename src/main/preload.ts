@@ -101,6 +101,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
 const callerSetAnswer = async (e, answer) => {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
   await pc.setRemoteDescription(answer) //出错
+  console.log('呼叫人已经设置上远程描述：', pc.remoteDescription)
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
