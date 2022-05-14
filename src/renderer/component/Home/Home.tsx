@@ -1,12 +1,15 @@
 import React, {useState, useRef, useEffect} from 'react'
 import css from './index.module.css'
 import VideoCall from '../VideoCall/VideoCall'
+import Tip from '../Tip/Tip'
 const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionListener, acceptCall, rejectCall} =
   window.electronAPI
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<number>(0)
   const [remoteChannel, setRemoteChannel] = useState<number>(0)
   const [calling, setCalling] = useState<boolean>(false)
+  const [isShowTip, setIsShowTip] = useState<boolean>(false)
+  const [tipText, setTipText] = useState<string>('')
   const [beCalling, setBeCalling] = useState<boolean>(false)
   const channelInputRef = useRef<HTMLInputElement>(null)
 
@@ -35,20 +38,27 @@ const Home: React.FC = () => {
       return console.log('请输入频道！')
     }
     const callerToCallResult = result => {
-      console.log(result.message)
+      setTipText(result.message)
+      setIsShowTip(true)
+
       if (result.code === 0) {
-        console.log('成功')
       } else {
-        console.log('失败')
+        setTimeout(() => {
+          setIsShowTip(false)
+        }, 3000)
       }
     }
     const succCall = remoteChannel => {
+      setIsShowTip(false)
       setCalling(true)
       setRemoteChannel(remoteChannel)
     }
     const failCall = remoteChannel => {
       setCalling(false)
-      console.log(remoteChannel + '拒绝了')
+      setTipText(remoteChannel + '拒绝通话！')
+      setTimeout(() => {
+        setIsShowTip(false)
+      }, 3000)
     }
     callerToCall(remoteChannel, callerToCallResult, succCall, failCall)
   }
@@ -87,7 +97,7 @@ const Home: React.FC = () => {
               </div>
             </div>
           </div>
-
+          {isShowTip && <Tip text={tipText} />}
           {beCalling && (
             <div className={css.chooseBox}>
               <div className={css.channel}>{remoteChannel}</div>

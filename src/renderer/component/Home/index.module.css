@@ -2,6 +2,7 @@
   height: 100vh;
   overflow: hidden;
   position: relative;
+  color: #000;
   /* background-image: linear-gradient(
     45deg,
     hsl(240deg 100% 20%) 0%,
@@ -15,7 +16,7 @@
     hsl(44deg 100% 57%) 89%,
     hsl(55deg 98% 62%) 100%
   ); */
-  color: #000;
+ 
 }
 .callBox {
   position: absolute;
