@@ -4,10 +4,10 @@ const {send: sendMainWindow} = require('./home')
 const signal = require('./signal')
 
 const ipcinit = function () {
-  signal.once('whoCall', ({channel}) => {
+  signal.on('whoCall', ({channel}) => {
     sendMainWindow('whoCall', channel)
   })
-  signal.once('closeConnect', () => {
+  signal.on('closeConnect', () => {
     sendMainWindow('closeConnect')
   })
   ipcMain.handle('getLocalChannel', async function () {

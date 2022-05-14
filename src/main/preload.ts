@@ -125,7 +125,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     })
   },
   addCloseConnectionListener: function (callback) {
-    ipcRenderer.on('closeConnect', callback)
+    ipcRenderer.on('closeConnect', ()=>{
+      pc.close()
+      pc = new RTCPeerConnection()
+      callback()
+    })
   },
   acceptCall: async function (remoteChannel, calleeAcceptCallResultCallback) {
     ipcRenderer.send('calleeAcceptCall', remoteChannel)
