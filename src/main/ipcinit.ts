@@ -2,13 +2,18 @@ export {}
 const {ipcMain} = require('electron')
 const {send: sendMainWindow} = require('./home')
 const signal = require('./signal')
-
+function removeOldListener(...events) {
+  for (let i = 0; i < events.length; i++) {
+    signal.removeAllListeners(events[i])
+  }
+}
 const ipcinit = function () {
   signal.on('whoCall', ({channel}) => {
     sendMainWindow('whoCall', channel)
   })
   signal.on('closeConnect', () => {
     sendMainWindow('closeConnect')
+    removeOldListener('callerSendCandidate', 'calleeSendCandidate')
   })
   ipcMain.handle('getLocalChannel', async function () {
     return await signal.invoke('getLocalChannel', null, 'getLocalChannelResult')
@@ -17,16 +22,18 @@ const ipcinit = function () {
     let result = await signal.invoke('callerToCall', {remoteChannel}, 'callerToCallResult')
     sendMainWindow('callerToCallResult', result)
     if (result.code === 0) {
-      signal.once('calleeAcceptCall', async ({remoteChannel}) => {
+      signal.once('calleeAcceptCall', ({remoteChannel}) => {
         sendMainWindow('calleeAcceptCall', remoteChannel)
+        removeOldListener('calleeRejectCall')
       })
-      signal.once('calleeRejectCall', async ({remoteChannel}) => {
+      signal.once('calleeRejectCall', ({remoteChannel}) => {
         sendMainWindow('calleeRejectCall', remoteChannel)
+        removeOldListener('calleeAcceptCall', 'calleeSendAnswer', 'calleeSendCandidate')
       })
-      signal.once('calleeSendAnswer', async answer => {
+      signal.once('calleeSendAnswer', answer => {
         sendMainWindow('calleeSendAnswer', answer)
       })
-      signal.on('calleeSendCandidate', async candidate => {
+      signal.on('calleeSendCandidate', candidate => {
         sendMainWindow('calleeSendCandidate', candidate)
       })
     }
@@ -52,6 +59,7 @@ const ipcinit = function () {
   })
   ipcMain.on('closeConnect', (e, remoteChannel) => {
     signal.send('closeConnect', {remoteChannel})
+    removeOldListener('callerSendCandidate', 'calleeSendCandidate')
   })
 }
 module.exports = ipcinit

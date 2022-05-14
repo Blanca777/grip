@@ -65,7 +65,9 @@ const callerSendOffer = async () => {
     ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
   }
   let streams = await getMediaScreen(false)
+  console.log('获取有声音本地流:', streams)
   for (let mst of streams.getTracks()) {
+    console.log('推送轨道：', mst)
     let remoteSender = pc.addTrack(mst, streams)
     remoteSenders.push(remoteSender)
   }

@@ -55,7 +55,7 @@ const Home: React.FC = () => {
     }
     const failCall = remoteChannel => {
       setCalling(false)
-      setTipText(remoteChannel + '拒绝通话！')
+      setTipText(remoteChannel + '拒绝了通话！')
       setTimeout(() => {
         setIsShowTip(false)
       }, 3000)

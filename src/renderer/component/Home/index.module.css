@@ -22,9 +22,11 @@
   position: absolute;
   right: 10%;
   bottom: 150px;
+  z-index: 1;
   width: 200px;
   height: 150px;
   border-radius: 20px;
+  background-color: #fff;
   /* box-shadow: 20px -30px 50px hsl(41deg 96% 81%), -1px 1px 10px #000; */
   box-shadow: 1px 1px 10px #000;
   /* background-image: linear-gradient(
