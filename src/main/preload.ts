@@ -62,7 +62,9 @@ addTrackCallback()
 const callerSendOffer = async () => {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
-    ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
+    if (e.candidate !== null) {
+      ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
+    }
   }
   let streams = await getMediaScreen(false)
   console.log('获取有声音本地流:', streams)
@@ -99,7 +101,7 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
 }
 const callerSetAnswer = async (e, answer) => {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
-  pc.setRemoteDescription(answer) //出错
+  await pc.setRemoteDescription(answer) //出错
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
