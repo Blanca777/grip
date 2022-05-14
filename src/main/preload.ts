@@ -46,13 +46,16 @@ const addVideoSrcObjec = (remoteStream, localStream) => {
   }
 }
 const stopVideo = () => {
-  isInitGetMediaScreen = true
-  getMediaScreen().then(stream => {
-    stream.getTracks().forEach(track => {
-      track.stop()
-      console.log(track.kind, '关闭', '状态：', track.enabled)
+  getMediaScreen()
+    .then(stream => {
+      stream.getTracks().forEach(track => {
+        track.stop()
+        console.log(track.kind, '关闭', '状态：', track.readyState)
+      })
     })
-  })
+    .finally(() => {
+      isInitGetMediaScreen = true
+    })
 }
 const addTrackCallback = async function () {
   pc.ontrack = async ev => {
