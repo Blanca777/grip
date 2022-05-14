@@ -41,15 +41,10 @@ const addVideoSrcObjec = (remoteStream, localStream) => {
   }
 }
 const stopVideo = () => {
-  const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement
-  const localvideo = document.getElementById('localVideo') as HTMLVideoElement
-  const remoteStream = remoteVideo.srcObject as MediaStream
-  const localStream = localvideo.srcObject as MediaStream
-  remoteStream.getTracks().forEach(function(track){
-    track.stop()
-  })
-  localStream.getTracks().forEach(function(track){
-    track.stop()
+  getMediaScreen(true, true).then(stream => {
+    stream.getTracks().forEach(track => {
+      track.stop()
+    })
   })
 }
 const addTrackCallback = async function () {
