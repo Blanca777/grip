@@ -16,7 +16,7 @@ async function addIceCandidate(e, candidate) {
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
     for (let i = 0; i < candidates.length; i++) {
-      console.log('candidate:', typeof candidates[i], candidates[i])
+      console.log('candidate:', typeof candidates[i])
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
@@ -25,7 +25,7 @@ async function addIceCandidate(e, candidate) {
   }
 }
 const getMediaScreen = async () => {
-  if (!mediaScreen||isInitGetMediaScreen) {
+  if (!mediaScreen || isInitGetMediaScreen) {
     isInitGetMediaScreen = false
     mediaScreen = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
   }
@@ -115,6 +115,7 @@ const callerSetAnswer = async (e, answer) => {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
   await pc.setRemoteDescription(answer) //出错
   console.log('呼叫人已经设置上远程描述：', pc.remoteDescription)
+  addIceCandidate(null, null)
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
