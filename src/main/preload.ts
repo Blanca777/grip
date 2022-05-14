@@ -1,6 +1,7 @@
 const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc = new RTCPeerConnection()
+let remoteSenders: RTCRtpSender[]
 let candidates: any[] = []
 async function addIceCandidate(e, candidate) {
   try {
@@ -65,7 +66,8 @@ const callerSendOffer = async () => {
   }
   let streams = await getMediaScreen(false)
   for (let mst of streams.getTracks()) {
-    pc.addTrack(mst, streams)
+    let remoteSender = pc.addTrack(mst, streams)
+    remoteSenders.push(remoteSender)
   }
 
   let offer = await pc.createOffer({
@@ -85,7 +87,8 @@ const calleeSetOfferAndSendAnswer = async (e, offer) => {
   pc.setRemoteDescription(offer)
   let streams = await getMediaScreen(false)
   for (let mst of streams.getTracks()) {
-    pc.addTrack(mst, streams)
+    let remoteSender = pc.addTrack(mst, streams)
+    remoteSenders.push(remoteSender)
   }
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
@@ -125,9 +128,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     })
   },
   addCloseConnectionListener: function (callback) {
-    ipcRenderer.on('closeConnect', ()=>{
-      pc.close()
-      pc = new RTCPeerConnection()
+    ipcRenderer.on('closeConnect', async () => {
+      for (let i = 0; i < remoteSenders.length; i++) {
+        pc.removeTrack(remoteSenders[i])
+      }
       callback()
     })
   },
@@ -145,7 +149,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('calleeRejectCall', remoteChannel)
   },
   closeConnect: async function (remoteChannel) {
-    pc.close()
+    for (let i = 0; i < remoteSenders.length; i++) {
+      pc.removeTrack(remoteSenders[i])
+    }
     ipcRenderer.send('closeConnect', remoteChannel)
   },
 })
