@@ -1,15 +1,23 @@
 const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
 let pc: RTCPeerConnection = new RTCPeerConnection()
-let remoteSenders: RTCRtpSender[] = []
+// let remoteSenders: RTCRtpSender[] = []
 let candidates: any[] = []
 let mediaScreen: MediaStream | null
 let isInitGetMediaScreen: boolean = true
+let readyRemoteVideo
+const ipcChannels: string[] = [
+  'callerToCallResult',
+  'callerToCallResult',
+  'calleeAcceptCall',
+  'calleeRejectCall',
+  'calleeSendAnswer',
+  'calleeSendCandidate',
+  'calleeAcceptCallResult',
+  'callerSendOffer',
+  'callerSendCandidate',
+]
 contextBridge.exposeInMainWorld('electronAPI', {
-  getLocalChannel: async function () {
-    let result = await ipcRenderer.invoke('getLocalChannel')
-    return result
-  },
   addWhoCallListener: function (callback) {
     ipcRenderer.on('whoCall', (e, channel) => {
       callback(channel)
@@ -24,6 +32,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback()
     })
   },
+  addReadyRemoteVideoCallback: function (callback) {
+    readyRemoteVideo = callback
+  },
+  getLocalChannel: async function () {
+    let result = await ipcRenderer.invoke('getLocalChannel')
+    return result
+  },
+
   callerToCall: function (remoteChannel, callerToCallResultCallback, calleeAcceptCall, calleeRejectCall) {
     ipcRenderer.send('callerToCall', remoteChannel)
     ipcRenderer.once('callerToCallResult', (e, result) => {
@@ -49,6 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.once('calleeAcceptCallResult', (e, result) => {
       calleeAcceptCallResultCallback(result)
       if (result.code === 0) {
+        addLocalVideoSrcObject()
         ipcRenderer.once('callerSendOffer', calleeSetOfferAndSendAnswer)
         ipcRenderer.on('callerSendCandidate', addIceCandidate)
       }
@@ -66,6 +83,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('closeConnect', remoteChannel)
   },
 })
+function removerIpcRendererListener(...channels) {
+  for (let i = 0; i < channels.length; i++) {
+    ipcRenderer.removeAllListeners(channels[i])
+  }
+}
 async function addIceCandidate(e, candidate) {
   try {
     let candi = JSON.parse(candidate)
@@ -77,7 +99,7 @@ async function addIceCandidate(e, candidate) {
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
     for (let i = 0; i < candidates.length; i++) {
-      console.log('candidate:', typeof candidates[i])
+      console.log('candidate:', typeof candidates[i], candidates[i])
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
@@ -85,39 +107,28 @@ async function addIceCandidate(e, candidate) {
     console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
-function stopVideo() {
-  getMediaScreen()
-    .then(stream => {
-      stream.getTracks().forEach(track => {
-        track.stop()
-        console.log(track.kind, '关闭', '状态：', track.readyState)
-      })
-    })
-    .finally(() => {
-      isInitGetMediaScreen = true
-    })
-}
-async function initEnv() {
-  pc = new RTCPeerConnection()
-  candidates = []
-  isInitGetMediaScreen = true
-  mediaScreen = null
-  const ipcChannels: string[] = [
-    'callerToCallResult',
-    'callerToCallResult',
-    'calleeAcceptCall',
-    'calleeRejectCall',
-    'calleeSendAnswer',
-    'calleeSendCandidate',
-    'calleeAcceptCallResult',
-    'callerSendOffer',
-    'callerSendCandidate',
-  ]
-  for (let i = 0; i < ipcChannels.length; i++) {
-    ipcRenderer.removeAllListeners(ipcChannels[i])
+function addRemoteVideoSrcObject(remoteStream) {
+  console.log('添加远程媒体流到remotevideo标签：', remoteStream)
+  let remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement
+  remoteVideo.srcObject = remoteStream
+  remoteVideo.onloadedmetadata = function () {
+    console.log('播放remoteVideo')
+    if (readyRemoteVideo) {
+      readyRemoteVideo()
+    }
+    remoteVideo.play()
   }
-  addTrackCallback()
-  stopVideo()
+}
+async function addLocalVideoSrcObject() {
+  let stream = await getMediaScreen()
+  console.log('添加本地媒体流到localvideo标签：', stream)
+  let newStream = new MediaStream(stream.getVideoTracks())
+  let localvideo = document.getElementById('localVideo') as HTMLVideoElement
+  localvideo.srcObject = newStream
+  localvideo.onloadedmetadata = function () {
+    console.log('播放localvideo')
+    localvideo.play()
+  }
 }
 async function getMediaScreen() {
   if (!mediaScreen || isInitGetMediaScreen) {
@@ -126,35 +137,35 @@ async function getMediaScreen() {
   }
   return mediaScreen
 }
-function addVideoSrcObjec(remoteStream, localStream) {
-  let remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement
-  let localvideo = document.getElementById('localVideo') as HTMLVideoElement
-  remoteVideo.srcObject = remoteStream
-  localvideo.srcObject = localStream
-  remoteVideo.onloadedmetadata = function () {
-    console.log('播放remoteVideo')
-    remoteVideo.play()
+function stopVideo() {
+  if (mediaScreen) {
+    mediaScreen.getTracks().forEach(track => {
+      track.stop()
+      console.log(track.kind, '关闭', '状态：', track.readyState)
+    })
   }
-  localvideo.onloadedmetadata = function () {
-    console.log('播放localvideo')
-    localvideo.play()
-  }
+}
+async function initEnv() {
+  stopVideo()
+  pc = new RTCPeerConnection()
+  addTrackCallback()
+  candidates = []
+  isInitGetMediaScreen = true
+  mediaScreen = null
+  removerIpcRendererListener(ipcChannels)
 }
 
 async function addTrackCallback() {
   pc.ontrack = async ev => {
-    console.log('ontrack：有媒体流进入')
-    let stream = await getMediaScreen()
-    let newStream = new MediaStream(stream.getVideoTracks())
+    console.log('ontrack：有远程媒体流进入')
     if (ev.streams && ev.streams[0]) {
-      console.log(ev.streams[0], newStream)
-      console.log('ontrack：streams[0]存在,直接使用')
-      addVideoSrcObjec(ev.streams[0], newStream)
+      console.log('ontrack：streams[0]存在,直接使用:', ev.streams[0])
+      addRemoteVideoSrcObject(ev.streams[0])
     } else {
       console.log('ontrack：使用track自建媒体流')
       let inboundStream = new MediaStream()
       inboundStream.addTrack(ev.track)
-      addVideoSrcObjec(inboundStream, newStream)
+      addRemoteVideoSrcObject(inboundStream)
     }
   }
 }
@@ -169,8 +180,9 @@ async function callerSendOffer() {
   let streams = await getMediaScreen()
   for (let mst of streams.getTracks()) {
     console.log('推送轨道：', mst)
-    let remoteSender = pc.addTrack(mst, streams)
-    remoteSenders.push(remoteSender)
+    pc.addTrack(mst, streams)
+    // let remoteSender = pc.addTrack(mst, streams)
+    // remoteSenders.push(remoteSender)
   }
 
   let offer = await pc.createOffer({
@@ -190,8 +202,9 @@ async function calleeSetOfferAndSendAnswer(e, offer) {
   pc.setRemoteDescription(offer)
   let streams = await getMediaScreen()
   for (let mst of streams.getTracks()) {
-    let remoteSender = pc.addTrack(mst, streams)
-    remoteSenders.push(remoteSender)
+    pc.addTrack(mst, streams)
+    // let remoteSender = pc.addTrack(mst, streams)
+    // remoteSenders.push(remoteSender)
   }
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
@@ -200,12 +213,9 @@ async function calleeSetOfferAndSendAnswer(e, offer) {
 }
 async function callerSetAnswer(e, answer) {
   console.log('呼叫人：收到answer并设置,answer:' + typeof answer + ':' + answer)
-  await pc.setRemoteDescription(answer) //出错
+  await pc.setRemoteDescription(answer)
   console.log('呼叫人已经设置上远程描述：', pc.remoteDescription)
+
+  //未避免candidate传输完，远程描述还未设置上，导致candidate没能加入pc
   addIceCandidate(null, null)
-}
-function removerIpcRendererListener(...channels) {
-  channels.forEach(channel => {
-    ipcRenderer.removeAllListeners(channel)
-  })
 }

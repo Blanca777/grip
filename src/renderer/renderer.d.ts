@@ -27,6 +27,7 @@ export interface IElectronAPI {
   acceptCall: (remoteChannel: number, calleeAcceptCallResultCallback: (result: Iresult) => void) => Promise<void>
   rejectCall: (remoteChannel: number) => void
   closeConnect: (remoteChannel: number) => void
+  addReadyRemoteVideoCallback: (callback: any) => void
 }
 
 declare global {
