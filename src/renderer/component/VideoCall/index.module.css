@@ -6,36 +6,51 @@
   justify-content: center;
   align-items: center;
   background-color: #fff;
-  z-index: 5;
-}
-.localVideo {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  z-index: 1;
-  width: 200px;
-  height: 200px;
   z-index: 2;
+}
+.leftBox {
+  display: inline-block;
+  width: 80vw;
+  height: 100vh;
 }
 .remoteVideo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  width: 100vw;
+  width: calc(80vw - 10px);
   height: 100vh;
-  z-index: 1;
+  border-radius: 10px;
+  background-color: #aaa;
 }
-.closeBtn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 70px;
-  height: 30px;
-  line-height: 30px;
-  box-shadow: 1px 1px 5px #333;
+.rightBox {
+  display: inline-block;
+  width: 20vw;
+  height: 100vh;
+  overflow: hidden;
+}
+.localVideo {
+  width: 100%;
+  border-radius: 10px;
+  height: 20vw;
+  background-color: #333;
+}
+.btnBox {
+  width: 20vw;
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 2px solid #ddd;
+}
+.btnItem {
+  width: 50px;
+  height: 50px;
+  box-shadow: 0px 0px 5px #333;
   text-align: center;
-  border-radius: 30px;
+  border-radius: 10px;
   cursor: pointer;
-  z-index: 3;
+}
+.btnItem svg {
+  width: 40px;
+  height: 40px;
+  margin-top: 5px;
 }

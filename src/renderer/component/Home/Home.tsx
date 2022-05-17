@@ -7,7 +7,7 @@ const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionList
 const Home: React.FC = () => {
   const [localChannel, setLocalChannel] = useState<number>(0)
   const [remoteChannel, setRemoteChannel] = useState<number>(0)
-  const [calling, setCalling] = useState<boolean>(false)
+  const [calling, setCalling] = useState<boolean>(true)
   const [isShowTip, setIsShowTip] = useState<boolean>(false)
   const [tipText, setTipText] = useState<string>('')
   const [beCalling, setBeCalling] = useState<boolean>(false)
