@@ -17,9 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   addCloseConnectionListener: function (callback) {
     ipcRenderer.on('closeConnect', async () => {
-      for (let i = 0; i < remoteSenders.length; i++) {
-        pc.removeTrack(remoteSenders[i])
-      }
+      // for (let i = 0; i < remoteSenders.length; i++) {
+      //   pc.removeTrack(remoteSenders[i])
+      // }
       initEnv()
       callback()
     })
@@ -58,9 +58,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('calleeRejectCall', remoteChannel)
   },
   closeConnect: async function (remoteChannel) {
-    for (let i = 0; i < remoteSenders.length; i++) {
-      pc.removeTrack(remoteSenders[i])
-    }
+    // for (let i = 0; i < remoteSenders.length; i++) {
+    //   pc.removeTrack(remoteSenders[i])
+    // }
     initEnv()
 
     ipcRenderer.send('closeConnect', remoteChannel)
