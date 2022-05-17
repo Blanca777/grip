@@ -46,6 +46,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callerToCallResultCallback(result)
       if (result.code === 0) {
         ipcRenderer.once('calleeAcceptCall', (e, remoteChannel) => {
+          addLocalVideoSrcObject()
           callerSendOffer()
           calleeAcceptCall(remoteChannel)
           removerIpcRendererListener('calleeRejectCall')
