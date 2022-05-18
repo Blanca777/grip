@@ -6,7 +6,7 @@ const VideoCall: React.FC<{
   remoteChannel: number
   setCalling: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({remoteChannel, setCalling}) => {
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
   const closeBtnHandle = () => {
     closeConnect(remoteChannel)
     setCalling(false)
