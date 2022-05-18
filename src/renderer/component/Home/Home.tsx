@@ -2,7 +2,7 @@ import React, {useState, useRef, useEffect, useContext} from 'react'
 import {useNavigate} from 'react-router-dom'
 import StoreContext from '../../state/context'
 import {ActionType} from '../../state/reducer'
-import css from './index.module.css'
+import css from './home.module.css'
 import VideoCall from '../VideoCall/VideoCall'
 import Tip from '../Tip/Tip'
 const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionListener, acceptCall, rejectCall} =
@@ -10,7 +10,7 @@ const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionList
 const Home: React.FC = () => {
   const [state, dispatch] = useContext(StoreContext)
   const navigate = useNavigate()
-  const [isShowTip, setIsShowTip] = useState<boolean>(true)
+  const [isShowTip, setIsShowTip] = useState<boolean>(false)
   const [tipText, setTipText] = useState<string>('')
   const [beCalling, setBeCalling] = useState<boolean>(false)
   const channelInputRef = useRef<HTMLInputElement>(null)
@@ -95,7 +95,14 @@ const Home: React.FC = () => {
 
   return (
     <div className={css.homeBox}>
-      <div className={css.callBox}>
+      <div className={css.mainBox}></div>
+      <div className={css.infoBox}>
+        <div className={css.nickname}>
+          blanca<span className={css.localChannel}>channel: 777</span>
+        </div>
+        <div className={css.roomInfo}>roomInfo</div>
+      </div>
+      {/* <div className={css.callBox}>
         <div className={css.channel} onClick={() => navigate('/room')}>{`${state.localChannel}`}</div>
         <input type="text" className={css.inputbox} ref={channelInputRef} autoFocus placeholder="Channel" />
         <div>
@@ -103,7 +110,7 @@ const Home: React.FC = () => {
             CALL
           </div>
         </div>
-      </div>
+      </div> */}
       {isShowTip && <Tip text={tipText} />}
       {beCalling && (
         <div className={css.chooseBox}>
