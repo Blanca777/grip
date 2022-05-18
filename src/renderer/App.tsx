@@ -1,6 +1,7 @@
 import React, {useReducer, useContext} from 'react'
 import {MemoryRouter, Routes, Route, Link} from 'react-router-dom'
 import Home from './component/Home/Home'
+import Room from './component/Room/Room'
 import StoreContext from './state/context'
 import {reducer, defaultState} from './state/reducer'
 const App: React.FC = () => {
@@ -11,6 +12,7 @@ const App: React.FC = () => {
       <MemoryRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/room" element={<Room />} />
         </Routes>
       </MemoryRouter>
     </StoreContext.Provider>

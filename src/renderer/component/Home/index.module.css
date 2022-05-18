@@ -1,21 +1,24 @@
-.box {
+.homeBox {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   position: relative;
   color: #000;
- 
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .callBox {
-  position: absolute;
+  position: relative;
+  /* position: absolute;
   right: 10%;
   bottom: 150px;
-  z-index: 1;
+  z-index: 1; */
   width: 200px;
   height: 150px;
   border-radius: 20px;
   background-color: #fff;
-  box-shadow: 1px 1px 10px #000;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
 }
 .channel {
   width: 100%;
@@ -26,10 +29,11 @@
 .inputbox {
   user-select: none;
   position: absolute;
+  /* width: 100px; */
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 50%;
+  width: 100px;
   padding: 2px 10px;
   border: none;
   outline: none;
@@ -50,7 +54,7 @@
   border-radius: 30px;
   text-align: center;
   line-height: 30px;
-  box-shadow: 1px 1px 5px #333;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
 
   cursor: pointer;
 }

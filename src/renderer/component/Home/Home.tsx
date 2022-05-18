@@ -1,14 +1,16 @@
-import React, {useState, useRef, useEffect} from 'react'
+import React, {useState, useRef, useEffect, useContext} from 'react'
+import {useNavigate} from 'react-router-dom'
+import StoreContext from '../../state/context'
+import {ActionType} from '../../state/reducer'
 import css from './index.module.css'
 import VideoCall from '../VideoCall/VideoCall'
 import Tip from '../Tip/Tip'
 const {getLocalChannel, callerToCall, addWhoCallListener, addCloseConnectionListener, acceptCall, rejectCall} =
   window.electronAPI
 const Home: React.FC = () => {
-  const [localChannel, setLocalChannel] = useState<number>(0)
-  const [remoteChannel, setRemoteChannel] = useState<number>(0)
-  const [calling, setCalling] = useState<boolean>(false)
-  const [isShowTip, setIsShowTip] = useState<boolean>(false)
+  const [state, dispatch] = useContext(StoreContext)
+  const navigate = useNavigate()
+  const [isShowTip, setIsShowTip] = useState<boolean>(true)
   const [tipText, setTipText] = useState<string>('')
   const [beCalling, setBeCalling] = useState<boolean>(false)
   const channelInputRef = useRef<HTMLInputElement>(null)
@@ -16,15 +18,21 @@ const Home: React.FC = () => {
   const whoCallHandle = channel => {
     console.log(channel + ' call you')
     setBeCalling(true)
-    setRemoteChannel(channel)
+    dispatch({
+      type: ActionType.ChangeRemoteChannel,
+      remoteChannel: channel,
+    })
   }
   const closeConnectHandle = () => {
-    setCalling(false)
+    navigate('/')
   }
   const init = async function () {
     let result = await getLocalChannel()
     if (result.code === 0) {
-      setLocalChannel(result.localChannel)
+      dispatch({
+        type: ActionType.ChangeLocalChannel,
+        localChannel: result.localChannel,
+      })
     } else {
       console.log(result.message)
     }
@@ -41,8 +49,7 @@ const Home: React.FC = () => {
       setTipText(result.message)
       setIsShowTip(true)
 
-      if (result.code === 0) {
-      } else {
+      if (result.code !== 0) {
         setTimeout(() => {
           setIsShowTip(false)
         }, 3000)
@@ -50,11 +57,15 @@ const Home: React.FC = () => {
     }
     const succCall = remoteChannel => {
       setIsShowTip(false)
-      setCalling(true)
-      setRemoteChannel(remoteChannel)
+      navigate('/room')
+
+      dispatch({
+        type: ActionType.ChangeRemoteChannel,
+        remoteChannel: remoteChannel,
+      })
     }
     const failCall = remoteChannel => {
-      setCalling(false)
+      navigate('/')
       setTipText(remoteChannel + '拒绝了通话！')
       setTimeout(() => {
         setIsShowTip(false)
@@ -65,17 +76,17 @@ const Home: React.FC = () => {
 
   const acceptHandle = () => {
     setBeCalling(false)
-    acceptCall(remoteChannel, result => {
+    acceptCall(state.remoteChannel, result => {
       //已经建立连接，等待caller发offer
       console.log(result.message)
       if (result.code === 0) {
-        setCalling(true)
+        navigate('/room')
       }
     })
   }
   const rejectHandle = () => {
     setBeCalling(false)
-    rejectCall(remoteChannel)
+    rejectCall(state.remoteChannel)
   }
   useEffect(() => {
     init()
@@ -83,33 +94,27 @@ const Home: React.FC = () => {
   }, [])
 
   return (
-    <div className={css.box}>
-      {calling ? (
-        <VideoCall remoteChannel={remoteChannel} setCalling={setCalling} />
-      ) : (
-        <>
-          <div className={css.callBox}>
-            <div className={css.channel}>{`${localChannel}`}</div>
-            <input type="text" className={css.inputbox} ref={channelInputRef} autoFocus placeholder="Channel" />
-            <div>
-              <div className={css.callBtn} onClick={toCallClickHandle}>
-                CALL
-              </div>
-            </div>
+    <div className={css.homeBox}>
+      <div className={css.callBox}>
+        <div className={css.channel} onClick={() => navigate('/room')}>{`${state.localChannel}`}</div>
+        <input type="text" className={css.inputbox} ref={channelInputRef} autoFocus placeholder="Channel" />
+        <div>
+          <div className={css.callBtn} onClick={toCallClickHandle}>
+            CALL
           </div>
-          {isShowTip && <Tip text={tipText} />}
-          {beCalling && (
-            <div className={css.chooseBox}>
-              <div className={css.channel}>{remoteChannel}</div>
-              <div className={css.rejectBtn} onClick={rejectHandle}>
-                Reject
-              </div>
-              <div className={css.acceptBtn} onClick={acceptHandle}>
-                Accept
-              </div>
-            </div>
-          )}
-        </>
+        </div>
+      </div>
+      {isShowTip && <Tip text={tipText} />}
+      {beCalling && (
+        <div className={css.chooseBox}>
+          <div className={css.channel}>{state.remoteChannel}</div>
+          <div className={css.rejectBtn} onClick={rejectHandle}>
+            Reject
+          </div>
+          <div className={css.acceptBtn} onClick={acceptHandle}>
+            Accept
+          </div>
+        </div>
       )}
     </div>
   )
