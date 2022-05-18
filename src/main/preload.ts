@@ -140,7 +140,11 @@ async function getMediaScreen() {
 }
 function stopVideo() {
   if (mediaScreen) {
-    mediaScreen.getTracks().forEach(track => {
+    mediaScreen.getVideoTracks().forEach(track => {
+      track.stop()
+      console.log(track.kind, '关闭', '状态：', track.readyState)
+    })
+    mediaScreen.getAudioTracks().forEach(track => {
       track.stop()
       console.log(track.kind, '关闭', '状态：', track.readyState)
     })
