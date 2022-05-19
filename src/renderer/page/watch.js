@@ -1,6 +1,11 @@
-let {getScreenSources} = window.electronAPI
+// let {getScreenSources} = window.electronAPI
 function play(stream) {
-  let video = document.getElementById('controlVideo')
+  let video = document.getElementById('video')
+  if('srcObjec' in video){
+    console.log('srcObjec in')
+  }else{
+    console.log('noin');
+  }
   video.srcObject = stream
   video.onloadedmetadata = function () {
     video.play()
@@ -8,38 +13,23 @@ function play(stream) {
 }
 
 async function getStream() {
-  // let sources = await getScreenSources()
-  // console.log(sources)
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      // audio: {
-      //   mandatory: {
-      //     chromeMediaSource: 'desktop',
-      //   },
-      // },
-      audio: false,
-      video: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-        },
-      },
-    })
-    return stream
-  } catch (err) {
-    console.log(err)
-  }
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+  })
+  console.log(stream, typeof stream)
+  return stream
 }
 
-const pc = new window.RTCPeerConnection({})
-async function createAnswer(offer) {
-  let screenStream = await getStream()
-  pc.addTrack(screenStream)
-  await pc.setRemoteDescription(offer)
-  await pc.setLocalDescription(await pc.createAnswer())
-  console.log('answer+++:', JSON.stringify(pc.localDescription))
-  return pc.localDescription
-}
-window.createAnswer = createAnswer
+// const pc = new window.RTCPeerConnection({})
+// async function createAnswer(offer) {
+//   let screenStream = await getStream()
+//   pc.addTrack(screenStream)
+//   await pc.setRemoteDescription(offer)
+//   await pc.setLocalDescription(await pc.createAnswer())
+//   console.log('answer+++:', JSON.stringify(pc.localDescription))
+//   return pc.localDescription
+// }
+// window.createAnswer = createAnswer
 async function init() {
   play(await getStream())
 }

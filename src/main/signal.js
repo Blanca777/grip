@@ -1,7 +1,7 @@
 const EventEmitter = require('events')
 const WebSocket = require('ws')
 const signal = new EventEmitter()
-const ws = new WebSocket('ws://127.0.0.1:9090')
+const ws = new WebSocket('ws://172.17.200.44:9090')
 ws.on('open', () => {
   console.log('connect success')
 })
@@ -18,13 +18,13 @@ function send(event, data) {
   console.log(event, data)
   ws.send(JSON.stringify({event, data}))
 }
-function invoke(event, data, resultEvent) {
+function invoke(event, data, resultEvent, wait = 5000) {
   return new Promise((resolve, reject) => {
     send(event, data)
     signal.once(resultEvent, resolve)
     setTimeout(() => {
       reject('timeout')
-    }, 5000)
+    }, wait)
   })
 }
 

@@ -3,7 +3,6 @@ const path = require('path')
 const {isDev, isProd} = require('./lib/env')
 const ipcinit = require('./ipcinit')
 const {create: createMainWindow} = require('./home')
-// const {create: createControlWindow} = require('./control')
 app.whenReady().then(() => {
   // createControlWindow()
   createMainWindow()

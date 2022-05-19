@@ -1,52 +1,68 @@
 export {}
-const {ipcMain, desktopCapturer} = require('electron')
+const {ipcMain} = require('electron')
 const {send: sendMainWindow} = require('./home')
-const {create: createControlWindow, send: sendControlWindow} = require('./watch')
 const signal = require('./signal')
-
+function removeOldListener(...events) {
+  for (let i = 0; i < events.length; i++) {
+    signal.removeAllListeners(events[i])
+  }
+}
 const ipcinit = function () {
-  ipcMain.handle('getLocalChannel', function () {
-    return signal.invoke('getLocalChannel', null, 'getLocalChannel')
+  ipcMain.handle('getAllChannel',async function(){
+    return await signal.invoke('getAllChannel', null, 'getAllChannelResult')
   })
-  ipcMain.on('toWatch', async (e, remoteChannel) => {
-    let result = await signal.invoke('toWatch', {remoteChannel}, 'toWatchResult')
-    if (result.code === 1) {
-      sendMainWindow('toWatchSuccess', result.remoteChannel)
-      // createControlWindow()
-    } else if (result.code === 0) {
-      sendMainWindow('toWatchFail', result.message)
+  signal.on('whoCall', ({userMsg}) => {
+    sendMainWindow('whoCall', userMsg)
+  })
+  signal.on('closeConnect', () => {
+    sendMainWindow('closeConnect')
+    removeOldListener('callerSendCandidate', 'calleeSendCandidate')
+  })
+  ipcMain.handle('getLocalChannel', async function () {
+    return await signal.invoke('getLocalChannel', null, 'getLocalChannelResult')
+  })
+  ipcMain.on('callerToCall', async (e, remoteChannel) => {
+    let result = await signal.invoke('callerToCall', {remoteChannel}, 'callerToCallResult')
+    sendMainWindow('callerToCallResult', result)
+    if (result.code === 0) {
+      signal.once('calleeAcceptCall', ({userMsg}) => {
+        sendMainWindow('calleeAcceptCall', userMsg)
+        removeOldListener('calleeRejectCall')
+      })
+      signal.once('calleeRejectCall', ({userMsg}) => {
+        sendMainWindow('calleeRejectCall', userMsg)
+        removeOldListener('calleeAcceptCall', 'calleeSendAnswer', 'calleeSendCandidate')
+      })
+      signal.once('calleeSendAnswer', answer => {
+        sendMainWindow('calleeSendAnswer', answer)
+      })
+      signal.on('calleeSendCandidate', candidate => {
+        sendMainWindow('calleeSendCandidate', candidate)
+      })
     }
   })
-  ipcMain.on('toShare', async function (e, localChannel) {
-    let result = await signal.invoke('toShare', {localChannel}, 'toShareResult')
-    if (result.code === 1) {
-      sendMainWindow('toShareSuccess', result.message)
-    } else if (result.code === 0) {
-      sendMainWindow('toShareFail', result.message)
+  ipcMain.on('calleeAcceptCall', async (e, remoteChannel) => {
+    console.log('同意连接' + remoteChannel)
+    let result = await signal.invoke('calleeAcceptCall', {remoteChannel}, 'calleeAcceptCallResult')
+    sendMainWindow('calleeAcceptCallResult', result)
+    if (result.code === 0) {
+      signal.once('callerSendOffer', offer => {
+        sendMainWindow('callerSendOffer', offer)
+      })
+      signal.on('callerSendCandidate', candidate => {
+        sendMainWindow('callerSendCandidate', candidate)
+      })
     }
   })
-  ipcMain.on('closeShare', async function (e, localChannel) {
-    let result = await signal.invoke('closeShare', {localChannel}, 'closeShareResult')
-    if (result.code === 1) {
-      sendMainWindow('closeShareSuccess', result.message)
-    } else {
-      sendMainWindow('closeShareFail', result.message)
-    }
+  ipcMain.on('calleeRejectCall', (e, remoteChannel) => {
+    signal.send('calleeRejectCall', {remoteChannel})
   })
-  ipcMain.on('addWhoIntoChannelListener', e => {
-    signal.on('whoIntoChannel', ({channel}) => {
-      sendMainWindow('whoIntoChannel', channel)
-      console.log(channel + '进入频道')
-    })
+  ipcMain.on('forward', (e, event, data) => {
+    signal.send('forward', {event, data})
   })
-  ipcMain.on('addCurChannelCloselListener', e => {
-    signal.on('curChannelCloseShare', ({channel}) => {
-      sendMainWindow('curChannelCloseShare', channel)
-      console.log('当前观看的' + channel + '关闭共享了，展示共享结束')
-    })
-  })
-  ipcMain.handle('getVideoSources', async function () {
-    return await desktopCapturer.getSources({types: ['window', 'screen']})
+  ipcMain.on('closeConnect', (e, remoteChannel) => {
+    signal.send('closeConnect', {remoteChannel})
+    removeOldListener('callerSendCandidate', 'calleeSendCandidate')
   })
 }
 module.exports = ipcinit

@@ -2,14 +2,14 @@ export {}
 const {BrowserWindow} = require('electron')
 const {isDev} = require('./lib/env')
 const path = require('path')
-let mainWindow: Electron.CrossProcessExports.BrowserWindow
+let mainWindow
 function create() {
   mainWindow = new BrowserWindow({
     width: 1024,
     height: 720,
     // resizable: false,
     webPreferences: {
-      preload: path.resolve(__dirname, isDev ? 'home.pre.ts' : 'home.pre.js'),
+      preload: path.resolve(__dirname, isDev ? '../../dist/main/preload.js' : 'preload.js'),
     },
   })
   mainWindow.menuBarVisible = false
