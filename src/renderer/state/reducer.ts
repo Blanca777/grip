@@ -1,38 +1,44 @@
 export enum ActionType {
-  ChangeLocalChannel = 'ChangeLocalChannel',
-  ChangeRemoteChannel = 'ChangeRemoteChannel',
+  ChangeLocalMsg = 'ChangeLocalMsg',
+  ChangeRemoteMsg = 'ChangeRemoteMsg',
+}
+export interface IuserMsg {
+  channel: number
+  nickname: string
+  callInfo: string
 }
 export interface Istate {
-  localChannel: number
-  remoteChannel: number
+  localMsg: IuserMsg
+  remoteMsg: IuserMsg
 }
 export interface Iaction {
   type: ActionType
   [key: string]: any
 }
+
 export const defaultState: Istate = {
-  localChannel: 0,
-  remoteChannel: 0,
+  localMsg: {channel: 0, nickname: '', callInfo: ''},
+  remoteMsg: {channel: 0, nickname: '', callInfo: ''},
 }
 export const reducer: (state: Istate, action: Iaction) => Istate = (state, action) => {
   switch (action.type) {
-    case ActionType.ChangeLocalChannel:
-      return changeLocalChannel(state, action)
-    case ActionType.ChangeRemoteChannel:
-      return ChangeRemoteChannel(state, action)
+    case ActionType.ChangeLocalMsg:
+      return changeLocalMsg(state, action)
+    case ActionType.ChangeRemoteMsg:
+      return changeRemoteMsg(state, action)
     default:
       return state
   }
 }
-function changeLocalChannel(state: Istate, action: Iaction): Istate {
+function changeLocalMsg(state: Istate, action: Iaction): Istate {
   return {
     ...state,
-    localChannel: action.localChannel,
+    localMsg: action.localMsg,
   }
 }
-function ChangeRemoteChannel(state: Istate, action: Iaction): Istate {
+function changeRemoteMsg(state: Istate, action: Iaction): Istate {
   return {
     ...state,
-    remoteChannel: action.remoteChannel,
+    remoteMsg: action.remoteMsg,
   }
 }

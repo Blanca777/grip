@@ -1,27 +1,19 @@
 import {memo, useEffect, useState, useContext} from 'react'
-import css from './index.module.css'
+import css from './videoRoom.module.css'
 import {useNavigate} from 'react-router-dom'
 import StoreContext from '../../state/context'
 
-const {closeConnect, addReadyRemoteVideoCallback} = window.electronAPI
+const {closeConnect, addReadyRemoteVideoCallback, addCloseConnectionListener} = window.electronAPI
 
 function Room() {
-  const [state, dispatch] = useContext(StoreContext)
   const navigate = useNavigate()
 
+  const [state, dispatch] = useContext(StoreContext)
   const [loading, setLoading] = useState<boolean>(false)
-  const closeBtnHandle = () => {
-    closeConnect(state.remoteChannel)
-    navigate('/')
-  }
-  const cutPicHandle = () => {
-    console.log('截图')
-  }
-  const showVideo = () => {
-    setLoading(false)
-  }
+
   useEffect(() => {
     addReadyRemoteVideoCallback(showVideo)
+    addCloseConnectionListener(closeConnectHandle)
   }, [])
   return (
     <div className={css.RoomBox}>
@@ -58,6 +50,19 @@ function Room() {
       </div>
     </div>
   )
+  function closeBtnHandle() {
+    closeConnect(state.remoteChannel)
+    navigate('/')
+  }
+  function cutPicHandle() {
+    console.log('截图')
+  }
+  function showVideo() {
+    setLoading(false)
+  }
+  function closeConnectHandle() {
+    navigate('/')
+  }
 }
 
 export default memo(Room)

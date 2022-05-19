@@ -3,11 +3,11 @@ interface Iresult {
   code: number
   /** 结果信息 */
   message: string
-  localChannel?: number
-  remoteChannel?: number
+  data: any
 }
 export interface IElectronAPI {
-  getLocalChannel: () => Promise<Iresult & {localChannel: number}>
+  getAllChannel: () => Promise<Iresult>
+  getLocalChannel: () => Promise<Iresult>
   /**
    * 呼叫方发起通话
    * @param remoteChannel 呼叫频道号 string

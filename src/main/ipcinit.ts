@@ -8,8 +8,11 @@ function removeOldListener(...events) {
   }
 }
 const ipcinit = function () {
-  signal.on('whoCall', ({channel}) => {
-    sendMainWindow('whoCall', channel)
+  ipcMain.handle('getAllChannel',async function(){
+    return await signal.invoke('getAllChannel', null, 'getAllChannelResult')
+  })
+  signal.on('whoCall', ({userMsg}) => {
+    sendMainWindow('whoCall', userMsg)
   })
   signal.on('closeConnect', () => {
     sendMainWindow('closeConnect')
@@ -22,12 +25,12 @@ const ipcinit = function () {
     let result = await signal.invoke('callerToCall', {remoteChannel}, 'callerToCallResult')
     sendMainWindow('callerToCallResult', result)
     if (result.code === 0) {
-      signal.once('calleeAcceptCall', ({remoteChannel}) => {
-        sendMainWindow('calleeAcceptCall', remoteChannel)
+      signal.once('calleeAcceptCall', ({userMsg}) => {
+        sendMainWindow('calleeAcceptCall', userMsg)
         removeOldListener('calleeRejectCall')
       })
-      signal.once('calleeRejectCall', ({remoteChannel}) => {
-        sendMainWindow('calleeRejectCall', remoteChannel)
+      signal.once('calleeRejectCall', ({userMsg}) => {
+        sendMainWindow('calleeRejectCall', userMsg)
         removeOldListener('calleeAcceptCall', 'calleeSendAnswer', 'calleeSendCandidate')
       })
       signal.once('calleeSendAnswer', answer => {

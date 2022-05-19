@@ -18,7 +18,12 @@ const ipcChannels: string[] = [
   'callerSendCandidate',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
+  getAllChannel: async function(){
+    let channels = await ipcRenderer.invoke('getAllChannel')
+    return channels
+  },
   addWhoCallListener: function (callback) {
+    ipcRenderer.removeAllListeners('whoCall')
     ipcRenderer.on('whoCall', (e, channel) => {
       callback(channel)
     })
@@ -45,14 +50,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.once('callerToCallResult', (e, result) => {
       callerToCallResultCallback(result)
       if (result.code === 0) {
-        ipcRenderer.once('calleeAcceptCall', (e, remoteChannel) => {
+        ipcRenderer.once('calleeAcceptCall', (e, userMsg) => {
           addLocalVideoSrcObject()
           callerSendOffer()
-          calleeAcceptCall(remoteChannel)
+          calleeAcceptCall(userMsg)
           removerIpcRendererListener('calleeRejectCall')
         })
-        ipcRenderer.once('calleeRejectCall', (e, remoteChannel) => {
-          calleeRejectCall(remoteChannel)
+        ipcRenderer.once('calleeRejectCall', (e, userMsg) => {
+          calleeRejectCall(userMsg)
           removerIpcRendererListener('calleeAcceptCall', 'calleeSendAnswer', 'calleeSendCandidate')
         })
         ipcRenderer.once('calleeSendAnswer', callerSetAnswer)
