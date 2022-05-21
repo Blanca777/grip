@@ -51,7 +51,7 @@ function Room() {
     </div>
   )
   function closeBtnHandle() {
-    closeConnect(state.remoteChannel)
+    closeConnect(state.remoteMsg.channel)
     navigate('/')
   }
   function cutPicHandle() {

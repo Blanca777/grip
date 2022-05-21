@@ -20,7 +20,13 @@ const Home: React.FC = () => {
         <div className={css.roomBox}>
           {channels.map(item => {
             return (
-              <RoomItem key={item.channel} callInfo={item.callInfo} nickname={item.nickname} channel={item.channel} />
+              <RoomItem
+                key={item.channel}
+                callInfo={item.callInfo}
+                nickname={item.nickname}
+                channel={item.channel}
+                inCalling={item.inCalling}
+              />
             )
           })}
         </div>

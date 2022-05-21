@@ -19,7 +19,9 @@ const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel, inCalling})
   return (
     <div className={css.roomItem}>
       <div className={css.roomItem_nickname}>{nickname}</div>
-      <div className={css.roomItem_roomInfo}><abbr title={callInfo}>{callInfo}</abbr></div>
+      <div className={css.roomItem_roomInfo}>
+        <abbr title={callInfo}>{callInfo}</abbr>
+      </div>
       <div className={css.roomItem_channel}>channel:{channel}</div>
       <div className={`${css.roomItem_curtain} ${isShowTip ? css.roomItem_calling : ''}`}>
         <svg viewBox="0 0 1024 1024" version="1.1" onClick={toCallClickHandle}>
@@ -30,7 +32,7 @@ const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel, inCalling})
         </svg>
         {isShowTip && <div>{tipText}</div>}
       </div>
-      <div className={css.callingState}></div>
+      {inCalling && <div className={css.inCallingSignal}></div>}
     </div>
   )
 
