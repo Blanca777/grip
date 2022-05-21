@@ -9,17 +9,17 @@ export interface IroomItem {
   channel: number
   nickname: string
   callInfo: string
+  inCalling: boolean
 }
-const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel}) => {
+const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel, inCalling}) => {
   const [isShowTip, setIsShowTip] = useState<boolean>(false)
   const [tipText, setTipText] = useState<string>('calling')
   const navigate = useNavigate()
   const [state, dispatch] = useContext(StoreContext)
-
   return (
     <div className={css.roomItem}>
       <div className={css.roomItem_nickname}>{nickname}</div>
-      <div className={css.roomItem_roomInfo}>{callInfo}</div>
+      <div className={css.roomItem_roomInfo}><abbr title={callInfo}>{callInfo}</abbr></div>
       <div className={css.roomItem_channel}>channel:{channel}</div>
       <div className={`${css.roomItem_curtain} ${isShowTip ? css.roomItem_calling : ''}`}>
         <svg viewBox="0 0 1024 1024" version="1.1" onClick={toCallClickHandle}>
@@ -30,6 +30,7 @@ const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel}) => {
         </svg>
         {isShowTip && <div>{tipText}</div>}
       </div>
+      <div className={css.callingState}></div>
     </div>
   )
 
@@ -41,6 +42,10 @@ const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel}) => {
       if (result.code !== 0) {
         setTimeout(() => {
           setIsShowTip(false)
+          dispatch({
+            type: ActionType.ChangeIsClientInToCalling,
+            isClientInToCalling: false,
+          })
         }, 3000)
       }
     }
@@ -52,20 +57,34 @@ const RoomItem: React.FC<IroomItem> = ({nickname, callInfo, channel}) => {
         type: ActionType.ChangeRemoteMsg,
         remoteMsg: userMsg,
       })
+      dispatch({
+        type: ActionType.ChangeIsClientInToCalling,
+        isClientInToCalling: false,
+      })
     }
     const failCall = userMsg => {
       setTipText(userMsg.nickname + '拒绝了通话！')
       setTimeout(() => {
         setIsShowTip(false)
       }, 3000)
+      dispatch({
+        type: ActionType.ChangeIsClientInToCalling,
+        isClientInToCalling: false,
+      })
     }
     callerToCall(channel, callerToCallResult, succCall, failCall)
   }
 
   function toCallClickHandle() {
-    setIsShowTip(true)
-    setTipText('等待...')
-    toCallChannel(channel)
+    if (!state.isClientInToCalling) {
+      dispatch({
+        type: ActionType.ChangeIsClientInToCalling,
+        isClientInToCalling: true,
+      })
+      setIsShowTip(true)
+      setTipText('等待...')
+      toCallChannel(channel)
+    }
   }
 }
 

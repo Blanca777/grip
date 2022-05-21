@@ -62,9 +62,20 @@
 .roomInfo {
   margin-top: 10px;
   margin-left: 20px;
+  display: inline-block;
+  width: 60vw;
+  max-height: 30px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  word-break: break-all;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
   color: var(--fontColorLevel_2);
 }
-
+abbr{
+  text-decoration: none;
+}
 .chooseBox {
   position: absolute;
   top: 10px;

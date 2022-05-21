@@ -19,7 +19,9 @@ const Home: React.FC = () => {
       <div className={css.mainBox}>
         <div className={css.roomBox}>
           {channels.map(item => {
-            return <RoomItem key={item.channel} callInfo={item.callInfo} nickname={item.nickname} channel={item.channel} />
+            return (
+              <RoomItem key={item.channel} callInfo={item.callInfo} nickname={item.nickname} channel={item.channel} />
+            )
           })}
         </div>
       </div>
