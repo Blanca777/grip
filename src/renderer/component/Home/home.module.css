@@ -64,14 +64,23 @@
 
   overflow: hidden;
 }
-.writeBtn {
+.leftBtnBox {
+  width: 40px;
+  height: 15vh;
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-
+  display: flex;
+  justify-content: center;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+}
+.writeBtn,
+.confirmWriteBtn,
+.closeWriteBoxBtn {
   display: inline-block;
   width: 20px;
   height: 20px;
+  cursor: pointer;
 }
 .nickname {
   margin-top: 10px;
@@ -110,6 +119,35 @@
 abbr {
   text-decoration: none;
 }
+.writeBox {
+  position: absolute;
+  top: 0;
+  left: 40px;
+
+  width: 70vw;
+  height: 15vh;
+  background-color: #fff;
+}
+.writeBox input {
+  border: none;
+  outline: none;
+  margin-top: 5px;
+  padding: 5px 10px 0px 5px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #000;
+
+  text-align: left;
+  font-size: 24px;
+
+  animation: showWriteBox 0.1s linear forwards;
+}
+.writeBox input:nth-child(1) {
+  width: 40%;
+}
+.writeBox input:nth-child(2) {
+  width: 100%;
+  font-size: 16px;
+}
 .chooseBox {
   position: absolute;
   top: 10px;
@@ -144,11 +182,20 @@ abbr {
   height: 30px;
   cursor: pointer;
 }
+
 @keyframes showChooseBox {
   0% {
     transform: translateX(150%);
   }
   100% {
     transform: translateX(0);
+  }
+}
+@keyframes showWriteBox {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

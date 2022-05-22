@@ -18,6 +18,10 @@ const ipcChannels: string[] = [
   'callerSendCandidate',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
+  changeLocalChannelMsg: async function (localMsg){
+    let result = await ipcRenderer.invoke('changeLocalChannelMsg', localMsg)
+    return result
+  },
   getAllChannel: async function(){
     let channels = await ipcRenderer.invoke('getAllChannel')
     return channels

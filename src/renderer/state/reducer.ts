@@ -20,8 +20,8 @@ export interface Iaction {
 }
 
 export const defaultState: Istate = {
-  localMsg: {channel: 0, nickname: '', callInfo: ''},
-  remoteMsg: {channel: 0, nickname: '', callInfo: ''},
+  localMsg: {channel: 0, nickname: '', callInfo: '',inCalling:false},
+  remoteMsg: {channel: 0, nickname: '', callInfo: '',inCalling:false},
   isClientInToCalling: false,
 }
 export const reducer: (state: Istate, action: Iaction) => Istate = (state, action) => {
