@@ -1,11 +1,13 @@
 const {contextBridge, ipcRenderer, desktopCapturer} = require('electron')
 
-let pc: RTCPeerConnection = new RTCPeerConnection()
+let pc: RTCPeerConnection
 // let remoteSenders: RTCRtpSender[] = []
 let candidates: any[] = []
 let mediaScreen: MediaStream | null
 let isInitGetMediaScreen: boolean = true
 let readyRemoteVideo
+let remoteStream = new MediaStream()
+pcInitTrack()
 const ipcChannels: string[] = [
   'callerToCallResult',
   'callerToCallResult',
@@ -159,36 +161,25 @@ function stopVideo() {
 }
 function initEnv() {
   stopVideo()
-  pc = new RTCPeerConnection()
-  addTrackCallback()
+  pcInitTrack()
   candidates = []
   isInitGetMediaScreen = true
   mediaScreen = null
+  remoteStream = new MediaStream()
   removerIpcRendererListener(ipcChannels)
 }
 
-async function addTrackCallback() {
-  let inboundStream = new MediaStream()
+async function pcInitTrack() {
+  pc = new RTCPeerConnection()
   pc.ontrack = async e => {
-    console.log(e)
     console.log('ontrack：使用track自建媒体流,track:', e.track)
-    inboundStream.addTrack(e.track)
-    if (inboundStream.getTracks().length < 2) {
-      addRemoteVideoSrcObject(inboundStream)
+    remoteStream.addTrack(e.track)
+    if (remoteStream.getTracks().length < 2) {
+      addRemoteVideoSrcObject(remoteStream)
     }
-
-    // if (ev.streams && ev.streams[0]) {
-    //   console.log('ontrack：streams[0]存在,直接使用:', ev.streams[0])
-    //   addRemoteVideoSrcObject(ev.streams[0])
-    // } else {
-    //   console.log('ontrack：使用track自建媒体流')
-    //   let inboundStream = new MediaStream()
-    //   inboundStream.addTrack(ev.track)
-    //   addRemoteVideoSrcObject(inboundStream)
-    // }
   }
 }
-addTrackCallback()
+
 async function callerSendOffer() {
   console.log('呼叫人 send offer')
   pc.onicecandidate = function (e) {
