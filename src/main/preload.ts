@@ -109,12 +109,12 @@ async function addIceCandidate(e, candidate) {
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
     for (let i = 0; i < candidates.length; i++) {
-      console.log('candidate:', typeof candidates[i], candidates[i])
+      // console.log('candidate:', typeof candidates[i], candidates[i])
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
   } else {
-    console.log('当前还未添加远程端信息，将candidate放入数组')
+    // console.log('当前还未添加远程端信息，将candidate放入数组')
   }
 }
 function addRemoteVideoSrcObject(remoteStream) {
@@ -169,9 +169,10 @@ function initEnv() {
 
 async function addTrackCallback() {
   let inboundStream = new MediaStream()
-  pc.ontrack = async ev => {
-    console.log('ontrack：使用track自建媒体流,track:', ev.track)
-    inboundStream.addTrack(ev.track)
+  pc.ontrack = async e => {
+    console.log(e)
+    console.log('ontrack：使用track自建媒体流,track:', e.track)
+    inboundStream.addTrack(e.track)
     if (inboundStream.getTracks().length < 2) {
       addRemoteVideoSrcObject(inboundStream)
     }
@@ -195,9 +196,9 @@ async function callerSendOffer() {
       ipcRenderer.send('forward', 'callerSendCandidate', JSON.stringify(e.candidate))
     }
   }
-  let streams = await getMediaScreen()
-  for (let mst of streams.getTracks()) {
-    console.log('推送轨道：', mst)
+  let stream = await getMediaScreen()
+  for (let mst of stream.getTracks()) {
+    console.log('呼叫人推送远程轨道：', mst)
     pc.addTrack(mst)
     // let remoteSender = pc.addTrack(mst, streams)
     // remoteSenders.push(remoteSender)
@@ -218,8 +219,10 @@ async function calleeSetOfferAndSendAnswer(e, offer) {
   }
 
   pc.setRemoteDescription(offer)
-  let streams = await getMediaScreen()
-  for (let mst of streams.getTracks()) {
+  let stream = await getMediaScreen()
+  console.log(stream)
+  for (let mst of stream.getTracks()) {
+    console.log('被呼叫人推送远程轨道：', mst)
     pc.addTrack(mst)
     // let remoteSender = pc.addTrack(mst, streams)
     // remoteSenders.push(remoteSender)
