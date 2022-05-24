@@ -11,9 +11,9 @@ const {getLocalChannel, addWhoCallListener, acceptCall, rejectCall, getAllChanne
 const Home: React.FC = () => {
   const navigate = useNavigate()
   const [state, dispatch] = useContext(StoreContext)
-  const [beCalling, setBeCalling] = useState<boolean>(true)
+  const [beCalling, setBeCalling] = useState<boolean>(false)
   const [channels, setChannels] = useState<IroomItem[]>([])
-  const [isShowWriteBox, setIsShowWriteBox] = useState<boolean>(true)
+  const [isShowWriteBox, setIsShowWriteBox] = useState<boolean>(false)
   const [nicknameInputValue, setNicknameInputValue] = useState<string>('')
   const [callInfoInputValue, setCallInfoInputValue] = useState<string>('')
   useEffect(() => {
