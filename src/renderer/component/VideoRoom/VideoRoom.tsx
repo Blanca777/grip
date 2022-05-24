@@ -9,7 +9,7 @@ function Room() {
   const navigate = useNavigate()
 
   const [state, dispatch] = useContext(StoreContext)
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     addReadyRemoteVideoCallback(showVideo)
@@ -51,7 +51,7 @@ function Room() {
     </div>
   )
   function closeBtnHandle() {
-    closeConnect(state.remoteChannel)
+    closeConnect(state.remoteMsg.channel)
     navigate('/')
   }
   function cutPicHandle() {

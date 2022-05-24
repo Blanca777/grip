@@ -6,6 +6,7 @@ interface Iresult {
   data: any
 }
 export interface IElectronAPI {
+  changeLocalChannelMsg: (localMsg: any) => Promise<any>
   getAllChannel: () => Promise<Iresult>
   getLocalChannel: () => Promise<Iresult>
   /**

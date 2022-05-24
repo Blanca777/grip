@@ -8,6 +8,9 @@ function removeOldListener(...events) {
   }
 }
 const ipcinit = function () {
+  ipcMain.handle('changeLocalChannelMsg', async function (e, localMsg){
+    return await signal.invoke('changeLocalChannelMsg', localMsg, 'changeLocalChannelMsgResult')
+  })
   ipcMain.handle('getAllChannel',async function(){
     return await signal.invoke('getAllChannel', null, 'getAllChannelResult')
   })
