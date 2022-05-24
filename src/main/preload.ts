@@ -18,11 +18,11 @@ const ipcChannels: string[] = [
   'callerSendCandidate',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
-  changeLocalChannelMsg: async function (localMsg){
+  changeLocalChannelMsg: async function (localMsg) {
     let result = await ipcRenderer.invoke('changeLocalChannelMsg', localMsg)
     return result
   },
-  getAllChannel: async function(){
+  getAllChannel: async function () {
     let channels = await ipcRenderer.invoke('getAllChannel')
     return channels
   },
@@ -148,18 +148,16 @@ async function getMediaScreen() {
   return mediaScreen
 }
 function stopVideo() {
+  console.log('start 关闭摄像头,mediaScreen:', mediaScreen)
   if (mediaScreen) {
-    mediaScreen.getVideoTracks().forEach(track => {
-      track.stop()
-      console.log(track.kind, '关闭', '状态：', track.readyState)
-    })
-    mediaScreen.getAudioTracks().forEach(track => {
+    mediaScreen.getTracks().forEach(track => {
       track.stop()
       console.log(track.kind, '关闭', '状态：', track.readyState)
     })
   }
+  console.log('end 关闭摄像头,mediaScreen:', mediaScreen)
 }
-async function initEnv() {
+function initEnv() {
   stopVideo()
   pc = new RTCPeerConnection()
   addTrackCallback()
@@ -170,17 +168,23 @@ async function initEnv() {
 }
 
 async function addTrackCallback() {
+  let inboundStream = new MediaStream()
   pc.ontrack = async ev => {
-    console.log('ontrack：有远程媒体流进入')
-    if (ev.streams && ev.streams[0]) {
-      console.log('ontrack：streams[0]存在,直接使用:', ev.streams[0])
-      addRemoteVideoSrcObject(ev.streams[0])
-    } else {
-      console.log('ontrack：使用track自建媒体流')
-      let inboundStream = new MediaStream()
-      inboundStream.addTrack(ev.track)
+    console.log('ontrack：使用track自建媒体流,track:', ev.track)
+    inboundStream.addTrack(ev.track)
+    if (inboundStream.getTracks().length < 2) {
       addRemoteVideoSrcObject(inboundStream)
     }
+
+    // if (ev.streams && ev.streams[0]) {
+    //   console.log('ontrack：streams[0]存在,直接使用:', ev.streams[0])
+    //   addRemoteVideoSrcObject(ev.streams[0])
+    // } else {
+    //   console.log('ontrack：使用track自建媒体流')
+    //   let inboundStream = new MediaStream()
+    //   inboundStream.addTrack(ev.track)
+    //   addRemoteVideoSrcObject(inboundStream)
+    // }
   }
 }
 addTrackCallback()
@@ -194,7 +198,7 @@ async function callerSendOffer() {
   let streams = await getMediaScreen()
   for (let mst of streams.getTracks()) {
     console.log('推送轨道：', mst)
-    pc.addTrack(mst, streams)
+    pc.addTrack(mst)
     // let remoteSender = pc.addTrack(mst, streams)
     // remoteSenders.push(remoteSender)
   }
@@ -216,7 +220,7 @@ async function calleeSetOfferAndSendAnswer(e, offer) {
   pc.setRemoteDescription(offer)
   let streams = await getMediaScreen()
   for (let mst of streams.getTracks()) {
-    pc.addTrack(mst, streams)
+    pc.addTrack(mst)
     // let remoteSender = pc.addTrack(mst, streams)
     // remoteSenders.push(remoteSender)
   }
