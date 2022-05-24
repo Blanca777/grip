@@ -9,7 +9,7 @@ function Room() {
   const navigate = useNavigate()
 
   const [state, dispatch] = useContext(StoreContext)
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
     addReadyRemoteVideoCallback(showVideo)

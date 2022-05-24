@@ -18,11 +18,11 @@ const ipcChannels: string[] = [
   'callerSendCandidate',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
-  changeLocalChannelMsg: async function (localMsg){
+  changeLocalChannelMsg: async function (localMsg) {
     let result = await ipcRenderer.invoke('changeLocalChannelMsg', localMsg)
     return result
   },
-  getAllChannel: async function(){
+  getAllChannel: async function () {
     let channels = await ipcRenderer.invoke('getAllChannel')
     return channels
   },
@@ -109,7 +109,7 @@ async function addIceCandidate(e, candidate) {
   if (pc?.remoteDescription && pc?.remoteDescription?.type) {
     console.log('当前已经添加远程端信息，将所有candidate加入pc')
     for (let i = 0; i < candidates.length; i++) {
-      console.log('candidate:', typeof candidates[i], candidates[i])
+      // console.log('candidate:', typeof candidates[i], candidates[i])
       await pc.addIceCandidate(new RTCIceCandidate(candidates[i]))
     }
     candidates = []
@@ -222,7 +222,7 @@ async function calleeSetOfferAndSendAnswer(e, offer) {
   }
   let answer = await pc.createAnswer()
   await pc.setLocalDescription(answer)
-  console.log('被呼叫人创建的answer:', JSON.stringify(answer))
+  console.log('被呼叫人创建的answer:', answer)
   ipcRenderer.send('forward', 'calleeSendAnswer', {type: pc.localDescription?.type, sdp: pc.localDescription?.sdp})
 }
 async function callerSetAnswer(e, answer) {
